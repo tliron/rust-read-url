@@ -1,0 +1,23 @@
+[package]
+edition = "2021"
+
+name = "read-url"
+description = "Read from a wide variety of URL types"
+version = "0.0.1"
+rust-version = "1.83"
+
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/tliron/rust-compris"
+documentation = "https://docs.rs/compris"
+authors = ["Tal Liron"]
+
+readme = "README.md"
+
+categories = [] # https://crates.io/category_slugs
+keywords = ["url"]
+
+[dependencies]
+path-absolutize = "3.1.1"
+thiserror = "2.0.5"
+url = "2.5.4"
+reqwest = { version = "0.12.9", features = ["blocking"] }
