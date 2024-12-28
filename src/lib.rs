@@ -1,3 +1,5 @@
+// https://stackoverflow.com/a/61417700
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![warn(missing_docs)]
 
 /*!
@@ -13,9 +15,17 @@ For more information and usage examples see the
 
 mod context;
 mod errors;
+#[cfg(feature = "file")]
 mod file;
+#[cfg(feature = "http")]
 mod http;
 mod url;
 
 #[allow(unused_imports)]
-pub use {context::*, errors::*, file::*, http::*, url::*};
+pub use {context::*, errors::*, url::*};
+
+#[cfg(feature = "file")]
+pub use file::*;
+
+#[cfg(feature = "http")]
+pub use http::*;

@@ -2,7 +2,7 @@ use super::{context::*, errors::*, url::*};
 
 use {
     path_absolutize::*,
-    std::{env::current_dir, fmt, fs::File, io, path::*},
+    std::{env::*, fmt, fs::*, io, path::*},
 };
 
 //
@@ -60,7 +60,7 @@ impl Context {
 }
 
 impl FileUrl {
-    /// Whether this points to a directory.
+    /// Whether this points to a directory (the path ends with a separator).
     pub fn is_dir(&self) -> bool {
         self.path.ends_with(MAIN_SEPARATOR_STR)
     }
@@ -118,6 +118,8 @@ impl fmt::Display for FileUrl {
         write!(formatter, "file://{}", self.path.display())
     }
 }
+
+// Conversions
 
 impl Into<UrlRef> for FileUrl {
     fn into(self) -> UrlRef {

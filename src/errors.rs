@@ -1,4 +1,4 @@
-use {std::io, thiserror::*, url};
+use {std::io, thiserror::*};
 
 //
 // UrlError

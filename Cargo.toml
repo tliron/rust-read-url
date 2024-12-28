@@ -21,3 +21,13 @@ path-absolutize = "3.1.1"
 thiserror = "2.0.5"
 url = "2.5.4"
 reqwest = { version = "0.12.9", features = ["blocking"] }
+
+[features]
+default = ["file", "http"]
+file = []
+http = []
+
+# https://stackoverflow.com/a/61417700
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

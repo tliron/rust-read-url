@@ -101,6 +101,8 @@ impl fmt::Display for HttpUrl {
     }
 }
 
+// Conversions
+
 impl Into<UrlRef> for HttpUrl {
     fn into(self) -> UrlRef {
         Box::new(self)
