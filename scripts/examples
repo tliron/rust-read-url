@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+cd "$ROOT"
+
+for E in $(cargo run --example 2>&1 | grep --extended-regexp '^    ' | sort); do
+	cargo run --example "$E" --features=blocking,async
+done

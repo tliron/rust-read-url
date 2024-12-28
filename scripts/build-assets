@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+cd "$ROOT/assets/files"
+
+tar --create --file=../archives/archive.tar *.txt
+tar --create --gzip --file=../archives/archive.tar.gz *.txt
+tar --create --zstd --file=../archives/archive.tar.zst *.txt
+zip ../archives/archive.zip *.txt
+
+cd "$ROOT/assets/archives"
+
+tar --create --gzip --file=nested.tar.gz archive.tar.gz

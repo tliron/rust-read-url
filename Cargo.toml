@@ -1,23 +1,11 @@
-[package]
-edition = "2021"
+[workspace]
+members = ["crates/library", "crates/cli"]
+resolver = "3"
 
-name = "read-url"
-description = "Read from a wide variety of URL types"
-version = "0.0.2"
-rust-version = "1.83"
+# [patch.crates-io]
+# kutil-cli = { path = "../rust-kutil/crates/cli" }
+# kutil-io = { path = "../rust-kutil/crates/io" }
 
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/tliron/rust-read-url"
-documentation = "https://docs.rs/read-url"
-authors = ["Tal Liron"]
-
-readme = "README.md"
-
-categories = [] # https://crates.io/category_slugs
-keywords = ["url"]
-
-[dependencies]
-path-absolutize = "3.1.1"
-thiserror = "2.0.5"
-url = "2.5.4"
-reqwest = { version = "0.12.9", features = ["blocking"] }
+[profile.release]
+strip = "debuginfo"
+lto = true

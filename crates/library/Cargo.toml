@@ -1,0 +1,92 @@
+[package]
+edition = "2021"
+
+name = "read-url"
+description = "Read from a wide variety of URL types"
+version = "0.0.3"
+rust-version = "1.84"
+
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/tliron/rust-read-url"
+documentation = "https://docs.rs/read-url"
+authors = ["Tal Liron"]
+
+readme = "../../README.md"
+
+categories = []    # https://crates.io/category_slugs
+keywords = ["url"]
+
+[dependencies]
+# extra features:
+async-compression = { optional = true, version = "0.4.18", features = [
+    "tokio",
+    "gzip",  # = flate2
+] }
+flate2 = { optional = true, version = "1.0.35" }
+futures = { optional = true, version = "0.3.31" }
+gix = { optional = true, version = "0.70.0", features = [
+    "blocking-http-transport-reqwest",
+] }
+# most up-to-date tokio-compatible fork of async-tar; see: https://github.com/astral-sh/uv/pull/7271
+krata-tokio-tar = { optional = true, version = "0.4.2" }
+kutil-io = { path = "../../../rust-kutil/crates/io", version = "0.0.1", default-features = false }
+ouroboros = "0.18.5"
+positioned-io = { optional = true, version = "0.3.3" }
+rand = "0.8.5"
+relative-path = "1.9.3"
+# extra features for both rc-zip? bzip2, deflate64, lzma, zstd
+rc-zip-sync = { optional = true, version = "4.2.4" }
+rc-zip-tokio = { optional = true, version = "4.2.3" }
+self_cell = "1.1.0"
+reqwest = { optional = true, version = "0.12.12", features = ["stream"] }
+thiserror = "2.0.11"
+tar = { optional = true, version = "0.4.43" }
+tokio = { optional = true, version = "1.43.0", features = ["rt"] }
+tracing = "0.1.41"
+url = "2.5.4"
+zstd = { optional = true, version = "0.13.2" }
+
+[dev-dependencies]
+anstream = "0.6.18"
+futures = "0.3.31"
+owo-colors = "4.1.0"
+tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
+tokio-util = { version = "0.7.13", features = ["compat"] }
+
+[features]
+default = ["file", "git", "gzip", "http", "internal", "tar", "zip", "zstd"]
+async = ["dep:tokio", "kutil-io/async"]
+blocking = ["kutil-io/blocking"]
+file = []
+git = ["gix"]
+gzip = [
+    "dep:async-compression", # for async
+    "dep:flate2",            # for blocking
+]
+http = [
+    "dep:futures", # for blocking
+    "dep:reqwest",
+    "dep:tokio",   # for blocking
+]
+internal = []
+tar = [
+    "dep:krata-tokio-tar", # for async
+    "dep:tar",             # for blocking
+]
+zip = [
+    "dep:rc-zip-tokio",  # for async
+    "dep:positioned-io", # for async
+    "dep:rc-zip-sync",   # for blocking
+]
+# this is for both tar and for zip
+zstd = [
+    "async-compression/zstd", # uses zstd, not ruzstd
+    "rc-zip-sync/zstd",       # uses zstd, not ruzstd; see: https://github.com/bearcove/rc-zip/issues/94
+    "rc-zip-tokio/zstd",      # uses zstd, not ruzstd
+    "dep:zstd",               # for blocking
+]
+
+# https://stackoverflow.com/a/61417700
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

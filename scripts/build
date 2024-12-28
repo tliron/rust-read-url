@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+cd "$ROOT"
+
+if [ "$TARGET" == release ]; then
+	m 'building binaries (release)...' "$CYAN"
+	cargo install --path="$ROOT/crates/cli"
+else
+	m 'building binaries (dev)...' "$CYAN"
+	cargo install --path="$ROOT/crates/cli" --debug
+fi

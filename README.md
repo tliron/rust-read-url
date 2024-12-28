@@ -1,86 +1,100 @@
-*Work in progress, not ready for general use*
-
 [![crates.io](https://img.shields.io/crates/v/read-url?color=%23227700)](https://crates.io/crates/read-url)
 [![docs.rs](https://img.shields.io/badge/docs.rs-latest?color=grey)](https://docs.rs/read-url/latest/read_url/)
 
 read-url
 ========
 
-Go beyond `http://` with this advanced URL library for Rust.
+Go beyond `http://` with this streamlined URL library for Rust.
 
-read-url gets you a `io::Read` from a wide variety of URL types, including
-specific entries in archives using a URL structure inspired by Java's
-[JarURLConnection](https://docs.oracle.com/javase/8/docs/api/java/net/JarURLConnection.html).
+read-url gets you an `io::Read` or a `tokio::io::AsyncRead` from a wide variety of URL types,
+including entries in archives and code repositories using a URL notation inspired by Java's
+[JarURLConnection](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/JarURLConnection.html).
 
-Rationale
----------
+We strongly recommend starting with the [examples](crates/library/examples/), specifically
+`start_here.rs`. They are designed to give you a tour of the API and its features.
 
-1) Do you have a program or API server that needs to read from a file? If there is no strong
-   reason for the file to be local, then read-url allows you to give the user the option of
-   providing a URL to the file instead of a local path. Exturl will let you stream just the data
-   you need, e.g. a single entry in a remote tarball, avoiding local caching whenever possible.
+```rust
+use read_url::*;
 
-2) Does that file reference other files in relation to its location? Such embedded relative paths
-   are often challenging to resolve if the "current location" is remote or inside an archive (or
-   inside a *remote* archive!). This complexit is one reason why some implementations insist on
-   only supporting local filesystem. Exturl does efficient relative path resolution for *all*
-   its supported URL schemes (even remote archives!), again making it easy for your program to
-   accept URLs. 
+let context = UrlContext::new();
+let url = context.url("http://localhost:8000/hello.txt")?;
+// or something like: "tar:http://localhost:8000/text.tar.gz!hello.txt"
+let mut reader = url.open()?; // io::Read
+let mut string = String::new();
+reader.read_to_string(&mut string)?;
+println!("{}", string);
+```
 
-Features
+Rationale and Features
+----------------------
+
+1) Do you have a program that needs a file as input? If there is no strong reason for the file
+   to be local, then read-url allows the user to provide it as either a URL or a local path.
+   Don't force the user to download or copy the file to their local filesystem first. Indeed, they
+   might not be able to do so in some environments.
+
+2) Does that file reference other files relative to its location? For example, a source code
+   file might need to "import" another file that is located next to it or in a subdirectory.
+   Relative paths can be tricky to resolve if the file's location is remote or inside an archive
+   (or inside a *remote* archive). This complexity is one reason why programs often insist on only
+   supporting local files, where relative paths are handled natively. Read-url provides relative
+   path resolution with optimized access for all its supported URL schemes (even in remote
+   archives), thus removing a major obstacle to accepting URLs as inputs.
+
+3) Read-url supports an `internal:` URL scheme, allowing you to mix externally-provided data with
+   data that you provision. Both data types live under a single, unified URL namespace and are
+   accessible by a single API. Relatedly, read-url allows you to override any URL, such that
+   external data can be overridden to use internally provisioned data, which is useful for testing
+   or as a fallback in constrained environments.
+
+CLI Tool
 --------
 
-Especially powerful is the ability to refer to entries in remote archives, e.g. a zip file
-over http. Where possible read-url will stream the data (e.g. remote tarballs), but if filesystem
-access is required (for remote zip, git repository clones, and Docker images) it will download
-them to a temporary local location. The use of a shared context allows for optimization, e.g. a
-remote zip file will not be downloaded again if it was already downloaded in the context.
-Examples:
+Also included in this repository is a simple CLI tool for reading from URLs, mainly intended for
+testing if and how using read-url in your code would work on specific URLs. Both blocking and
+asynchronous code paths are supported by this tool.
 
-    tar:http://mysite.org/cloud.tar.gz!main.yaml
-    git:https://github.com/tliron/puccini.git!examples/openstack/hello-world.yaml
+It's not intended as a replacement for `curl` or `wget`, though it can do some things that they
+can't, e.g. reading entries from remote archives.
 
-Another powerful feature is support for relative URL resolution using common filesystem-type
-paths, which includes usage of `..` and `.`. All URL types support this: file URLs, local and
-remote zip URLs, etc. Use `URL::relative()`.
+To install the CLI tool:
 
-You can also ensure that a URL is valid (e.g. remote location is available, tarball entry
-exists, etc.) before attempting to read from it (which may trigger a download) or passing it
-to other parts of your program. To do so, use `new_valid_url()` instead of `new_url()`.
-`new_valid_url()` also supports relative URLs tested against a list of potential bases.
-Compare with how the `PATH` environment variable is used by the OS to find commands.
+```sh
+cargo install read-url-cli
+```
 
-Also supported are URLs for in-memory data using a special `internal:` scheme. This allows you
-to have a unified API for accessing data, whether it's available externally or created
-internally by your program.
+Crate Features
+--------------
 
-Finally, there are tools for mocking and testing, e.g. a `MockURL` type that can mimic any
-scheme with arbitrary data, and there is support for custom URL transformation functions
-within a context, including straightforward mapping of URLs to other URLs. For example, you
-can map a `http:` URL to a `file:` or `internal:` URL.
+By default all URL types are enabled, however you *must* also explicitly enable `blocking`, `async`,
+or both. Or set [`default-features = false`](https://doc.rust-lang.org/cargo/reference/features.html#dependency-features).
+and pick and choose which API and URL types you want supported.
 
 Supported URL Types
 -------------------
 
 ### `http:` and `https:`
 
-Uses [reqwest](https://github.com/seanmonstar/reqwest). `URL::open()` is an HTTP GET verb.
+Classic. We internally rely on [reqwest](https://github.com/seanmonstar/reqwest) for
+these.
 
 ### `file:`
 
-An absolute path to the local filesystem.
+Represents an absolute path to the local filesystem.
 
-The URL must begin with two slashes. If a hostname is present before the path it will
-be ignored by read-url, so this:
+The URL representation must begin with two slashes. If a host is present before the path it
+will be stored but not otherwise used by read-url, so this:
 
     file://localhost/the/path
 
-is equivalent to this:
+is equivalent to this path:
 
-    file:///the/path
+    /the/path
 
 Because the path must be absolute, it always begins with a slash. The consequence is that
-most `file:` URLs begin with 3 slashes.
+`file:` URLs commonly begin with 3 slashes:
+
+    file:///the/path
 
 When compiled for Windows the URL path will be converted to a Windows path. The convention
 is that backslashes become slashes and a first slash is added to make it absolute. So this
@@ -88,101 +102,109 @@ URL:
 
     file:///C:/Windows/win.ini
 
-is equivalent to this path:
+is equivalent to this Windows path:
 
     C:\Windows\win.ini
 
-Note that for security reasons relative file URLs *are not* tested against the current
-working directory (`pwd`) by default. This is unlike OS services, such as TODO.
-If you do want to support the working directory then call `new_working_dir_file_url()` and add
-it explicitly to the bases of `new_valid_url()`.
+Note that for security reasons relative file URLs *are not* automatically searched against the
+current working directory by default. If you do want to support the working directory then
+call `working_dir_url()` and add it explicitly to your base URLs.
 
 It is often desirable to accept input that is *either* a URL *or* a file path. For this
-use case `new_any_or_file_url()` and `new_valid_any_or_file_url()` are provided. If the argument
-is not a parsable URL it will be treated as a file path and a `FileUrl` will be returned.
+use case we provide the `url_or_file_path()` API. If the argument is not a parsable URL it
+will be treated as a file path and a `FileUrl` will be returned. With this API, users would
+usually not see `file:` URLs directly.
 
-The functions' design may trip over a rare edge case for Windows. If there happens to be
-a drive that has the same name as a supported URL scheme, e.g. "http", then callers would
-have to provide a full file URL, otherwise it will be parsed as a URL of that scheme. E.g.
-instead of:
+Note that the design of this API may trip over a rare edge case for Windows. If there happens
+to be a drive that has the same name as a supported URL scheme, e.g. "http", then callers would
+have to provide a full file URL, otherwise it would be parsed as a URL of that scheme. E.g.
+imagine you have a Windows drive named "http". Thus instead of this Windows file path:
 
     http:\Dir\file
 
-you must use:
+you *must* use the full `file:` URL:
 
     file:///http:/Dir/file
 
 ### `tar:`
 
-Entries in tarballs. `.tar` and `.tar.gz` (or `.tgz`) are supported. The archive URL
-can be any full read-url URL *or* a local filesystem path. Examples:
+Entries in tarballs, with or without compression. Examples:
 
-    tar:http://mysite.org/cloud.tar.gz!path/to/main.yaml
-    tar:file:///local/path/cloud.tar.gz!path/to/main.yaml
-    tar:/local/path/cloud.tar.gz!path/to/main.yaml
+    tar:https://mysite.org/cloud.tar.gz!path/to/main.yaml
+    tar:file:///local/path/cloud.tar!path/to/main.yaml
 
-Note that tarballs are serial containers optimized for streaming, meaning that, when
-read, unwanted entries will be skipped until our entry is found, and then subsequent
-entries will be ignored. This means that when accessing tarballs over the network the
-tarball does *not* have to be downloaded in its entirety, unlike with zip (see below).
+The archive URL (before the `!`) can be any other read-url URL. Indeed it's technically
+possible to nest archive URLs inside each other for a tasty tarball sandwich:
+
+    tar:tar:mysite.org/cloud.tar.gz!inner.tar!path/to/main.yaml
+
+When using `url_or_file_path()` the archive URL can be a local path, so this would work
+with that API:
+
+    tar:local/relative/path/cloud.tar.gz!path/to/main.yaml
+
+Decompression is automatically detected depending on the path suffix. `.tar.gz`,
+`.tgz`, `.tar.zstd`, and `.tar.zst` are supported. Sure, there are a zillion other
+algorithms, but we decided to include 1) the most common, and 2) the most wanted. You
+can also specify the decompression algorithm explicitly using the URL fragment:
+
+    tar:/absolute/path/cloud#gzip!path/to/main.yaml
+    tar:relative/path/cloud#zstd!path/to/main.yaml
+
+Note that file paths (with `url_or_file_path()`) do not have fragments, so if you need
+this feature just use a `file:` URL instead.
+
+Tarballs are serial containers, naturally optimized for streaming, meaning that unwanted
+entries are skipped until our entry is found, and then subsequent entries are ignored. This
+means that when accessing tarballs over the network the tarball does not have to be
+downloaded in its entirety, unlike with zip (see below).
 
 ### `zip:`
 
-Entries in zip files. The archive URL can be any full read-url URL *or* a local
-filesystem path. Example:
+Entries in zip files. Example:
 
-    zip:http://mysite.org/cloud.tar.gz!path/to/main.yaml
+    zip:http://mysite.org/cloud.zip!path/to/main.yaml
 
-Note that zip files require random file access and thus *must* be on the local file
-system. Consequently for remote zips the *entire* archive must be downloaded in order
-to access one entry. Thus, if you have a choice of compression technologies and want
-good remote support, zip should be avoided. In any case, read-url will optimize by
-making sure to download the zip only once per context.
+Note that zip files require random file access and thus *must* be fully accessible.
+Consequently for remote zips the entire archive will be downloaded in order to access a
+single entry. Read-url will optimize by downloading the archive only once per context.
+Subsequent URLs accessing referring to the archive will use the existing download.
+
+If you have a choice of compression technologies and want efficient support for
+remote access then you should prefer tarballs to zip files.
 
 ### `git:`
 
-Files in git repositories. The repository URL is *not* an read-url URL, but rather must
-be URLs supported by TODO. Example:
+Files in git repositories. Note that the repository URL is not a read-url URL, but rather
+must be a URL representation supported by
+[gitoxide's gix](https://github.com/GitoxideLabs/gitoxide). Example:
 
-    git:https://github.com/tliron/puccini.git!examples/openstack/hello-world.yaml
+    git:https://github.com/tliron/rust-read-url.git!crates/library/Cargo.toml
 
-You can specify a reference (tag, branch tip, or commit hash) in the URL fragment, e.g.:
+The default is to fetch the tip (HEAD) of the default branch. However, you can also
+specify a reference via the URL fragment, either a git tag, a branch name (will fetch
+the tip), or a commit hash in hex. Example of a branch name:
 
-    git:https://github.com/tliron/puccini.git#main!examples/openstack/hello-world.yaml
+    git:https://github.com/tliron/rust-read-url.git#main!crates/library/Cargo.toml
 
-Because we are only interested in reading files, not making commits, read-url will optimize
-by performing a shallow clone (depth=1) of *only* the requested reference.
-
-### `docker:`
-
-Images on OCI/Docker registries. The URL structure is
-`docker://HOSTNAME/[NAMESPACE/]REPOSITORY[:TAG]`. The tag will default to "latest".
-Example:
-
-    docker://docker.io/tliron/prudence:latest
-
-The `url::open()` API will decode the first layer (a `.tar.gz`) it finds in the image.
-The intended use case is using OCI registries to store arbitrary data. In the future
-we may support more elaborate use cases.
+Because we are only interested in reading one file, not otherwise working with the git
+repository, read-url will do nothing more than the the bare minimum required, i.e. a
+bare (not checked out) shallow clone of just the specified reference. Read-url will
+also optimize by cloning the archive only once per context. Subsequent URLs accessing
+referring to the repository will use the existing clone.
 
 ### `internal:`
 
-Internal URLs can be stored globally so that all contexts are able to access them.
-
-Supported APIs for global internal URLs are `register_internal_url()` (which will fail if
-the URL has already been registered), `deregister_internal_url()`, `update_internal_url()`
-(which will always succeed), `read_to_internal_url()`, `read_to_internal_url_from_stdin()`.
-
-It is also possible to create ad-hoc internal URLs using `new_internal_url()` and then
-`url::set_content()`. These are *not* stored globally.
-
-Content can be `[u8]` or an implementation of the `InternalUrlProvider` trait.
-Other types will be converted to strings and then to `[u8]`.
+Internal URL content can be stored either in a context (`register_internal_url()`) or
+globally (`register_global_internal_url()`). All contexts can access the global content.
+URLs try to use their context's registry first, so that it can be used to override the
+globals.
 
 ### Mock URLs
 
 These are intended to be used for testing. They must be created explicitly via
-`new_mock_url()` and can use any scheme. They are not created by `new_url()`.
+`mock_url()` and are not created by parsing an input URLs. The can thus use any scheme,
+indeed any notation, with any content.
 
 License
 -------
