@@ -1,5 +1,5 @@
 use {
-    std::{fmt, io},
+    std::{fmt, io, sync::*},
     thiserror::*,
 };
 
@@ -30,9 +30,9 @@ pub enum UrlError {
     #[error("I/O: {0:?}")]
     IoMany(Vec<io::Error>),
 
-    /// Mutex.
-    #[error("mutex: {0}")]
-    Mutex(String),
+    /// Concurrency.
+    #[error("concurrency: {0}")]
+    Concurrency(String),
 
     /// Reqwest.
     #[cfg(feature = "http")]
@@ -57,5 +57,11 @@ impl UrlError {
         UrlT: fmt::Display,
     {
         io::Error::new(io::ErrorKind::NotFound, format!("not found: {}", url)).into()
+    }
+}
+
+impl<GuardT> From<PoisonError<GuardT>> for UrlError {
+    fn from(value: PoisonError<GuardT>) -> Self {
+        Self::Concurrency(value.to_string())
     }
 }
