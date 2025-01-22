@@ -7,7 +7,7 @@ pub fn run() -> Result<(), MainError> {
 
     if !cli.quiet {
         cli.colorize.initialize();
-        initialize_tracing(cli.verbose + 2);
+        initialize_tracing(cli.verbose + 2, cli.log_path.as_ref())?;
     }
 
     match &cli.subcommand {

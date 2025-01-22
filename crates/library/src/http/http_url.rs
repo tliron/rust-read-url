@@ -13,7 +13,7 @@ use std::fmt;
 /// The [URL::base] and [URL::relative] functions interpret the path segment of the URL
 /// as a Unix-style filesystem path, whereby the path separator is "/", and "." and
 /// ".." are supported for path traversal.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct HttpUrl {
     /// The [Url](url::Url).
     pub url: url::Url,

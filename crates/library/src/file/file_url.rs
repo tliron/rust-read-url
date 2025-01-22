@@ -1,6 +1,6 @@
 use super::super::{context::*, url::*, util::*};
 
-use std::{collections::*, fmt, path::*};
+use std::{fmt, path::*};
 
 //
 // FileUrl
@@ -28,7 +28,7 @@ use std::{collections::*, fmt, path::*};
 ///
 /// This library supports the host for presentation purposes, but it is not
 /// used for [URL::open].
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct FileUrl {
     /// The [PathBuf].
     pub path: PathBuf,
@@ -37,7 +37,7 @@ pub struct FileUrl {
     pub host: Option<String>,
 
     /// The optional query.
-    pub query: Option<HashMap<String, String>>,
+    pub query: Option<UrlQuery>,
 
     /// The optional fragment.
     pub fragment: Option<String>,
@@ -51,7 +51,7 @@ impl FileUrl {
         context: &UrlContextRef,
         path: PathBuf,
         host: Option<String>,
-        query: Option<HashMap<String, String>>,
+        query: Option<UrlQuery>,
         fragment: Option<String>,
     ) -> Self {
         Self { host, path, query, fragment, context: context.clone() }
@@ -65,11 +65,7 @@ impl FileUrl {
 
 impl fmt::Display for FileUrl {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let host = match &self.host {
-            Some(host) => host,
-            None => "",
-        };
-
+        let host = self.host.as_ref().map_or("", |h| &h);
         let query = url_query_string(&self.query);
         let fragment = url_fragment_string(&self.fragment);
 

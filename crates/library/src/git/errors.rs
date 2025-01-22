@@ -5,7 +5,7 @@ use thiserror::*;
 //
 
 /// Git error.
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum GitError {
     /// Parse.
     #[error("parse: {0}")]

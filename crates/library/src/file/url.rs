@@ -3,14 +3,14 @@ use super::{
     file_url::*,
 };
 
-use std::{collections::*, path::*};
+use std::path::*;
 
 impl URL for FileUrl {
     fn context(&self) -> &UrlContext {
         &*self.context
     }
 
-    fn query(&self) -> Option<HashMap<String, String>> {
+    fn query(&self) -> Option<UrlQuery> {
         self.query.clone()
     }
 
@@ -18,29 +18,12 @@ impl URL for FileUrl {
         self.fragment.clone()
     }
 
-    fn local(&self) -> Option<PathBuf> {
-        Some(self.path.clone())
-    }
-
-    #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
-        self.conform_path()
-    }
-
-    #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, crate::UrlError> {
-        use super::super::errors::*;
-
-        async fn conform_async(mut url: FileUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
-            Ok(url.into())
-        }
-
-        Ok(Box::pin(conform_async(self.clone())))
-    }
-
     fn format(&self) -> Option<String> {
         get_format_from_path(&self.path.to_string_lossy())
+    }
+
+    fn local(&self) -> Option<PathBuf> {
+        Some(self.path.clone())
     }
 
     fn base(&self) -> Option<UrlRef> {
@@ -55,8 +38,21 @@ impl URL for FileUrl {
         self.new_with(self.path.join(path)).into()
     }
 
-    fn key(&self) -> String {
-        format!("{}", self)
+    #[cfg(feature = "blocking")]
+    fn conform(&mut self) -> Result<(), crate::UrlError> {
+        self.conform_path()
+    }
+
+    #[cfg(feature = "async")]
+    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+        use super::super::errors::*;
+
+        async fn conform_async(mut url: FileUrl) -> Result<UrlRef, UrlError> {
+            url.conform_path()?;
+            Ok(url.into())
+        }
+
+        Ok(Box::pin(conform_async(self.clone())))
     }
 
     #[cfg(feature = "blocking")]
@@ -67,7 +63,7 @@ impl URL for FileUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use {super::super::errors::*, tokio::fs::*};
 
         async fn open_async(url: FileUrl) -> Result<AsyncReadRef, UrlError> {
