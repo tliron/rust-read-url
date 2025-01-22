@@ -13,7 +13,7 @@ use {
 ///
 /// The URL scheme is "zip:", followed by full archive URL, a `!`, and then the entry path
 /// within the archive.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ZipUrl {
     /// The archive [URL].
     pub archive_url: Arc<UrlRef>,

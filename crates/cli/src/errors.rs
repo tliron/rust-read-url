@@ -4,7 +4,7 @@ use {kutil_cli::run::*, read_url::*, std::io, thiserror::*};
 // MainError
 //
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum MainError {
     #[error("exit: {0}")]
     #[allow(unused)]

@@ -23,7 +23,7 @@ use std::{collections::*, fmt};
 ///
 /// For custom URLs that are supported by general [UrlContext] functions, see
 /// [InternalUrl](super::super::internal::InternalUrl).
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct MockUrl {
     /// The URL representation.
     pub url_representation: String,

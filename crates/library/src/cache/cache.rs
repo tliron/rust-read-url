@@ -1,7 +1,7 @@
 use super::super::errors::*;
 
 use {
-    rand::{distributions::*, *},
+    rand::{distr::*, *},
     std::{collections::*, env::*, fs::*, path::*, sync::*},
     tracing::info,
 };
@@ -56,9 +56,9 @@ impl UrlCache {
     pub fn reset(&self) -> Result<(), UrlError> {
         let mut errors = Vec::new();
 
-        let mut files = self.files.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut files = self.files.lock()?;
         for path in files.values() {
-            let path = path.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let path = path.lock()?;
             info!("deleting file: {}", path.to_string_lossy());
             if let Err(error) = remove_file(path.as_path()) {
                 errors.push(error);
@@ -66,9 +66,9 @@ impl UrlCache {
         }
         files.clear();
 
-        let mut directories = self.directories.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut directories = self.directories.lock()?;
         for path in directories.values() {
-            let path = path.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let path = path.lock()?;
             info!("deleting directory: {}", path.to_string_lossy());
             if let Err(error) = remove_dir_all(path.as_path()) {
                 errors.push(error);
@@ -89,13 +89,10 @@ impl UrlCache {
     pub fn file(&self, key: &str, prefix: &str) -> Result<(PathBufRef, bool), UrlError> {
         let key = key.to_string();
 
-        let mut files = self.files.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut files = self.files.lock()?;
         match files.get(&key) {
             Some(path) => {
-                info!(
-                    "existing file: {}",
-                    path.clone().lock().map_err(|e| UrlError::Mutex(e.to_string()))?.to_string_lossy()
-                );
+                info!("existing file: {}", path.clone().lock()?.to_string_lossy());
                 Ok((path.clone(), true))
             }
 
@@ -116,13 +113,10 @@ impl UrlCache {
     pub fn directory(&self, key: &str, prefix: &str) -> Result<(PathBufRef, bool), UrlError> {
         let key = key.to_string();
 
-        let mut directories = self.directories.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut directories = self.directories.lock()?;
         match directories.get(&key) {
             Some(path) => {
-                info!(
-                    "existing driectory: {}",
-                    path.clone().lock().map_err(|e| UrlError::Mutex(e.to_string()))?.to_string_lossy()
-                );
+                info!("existing driectory: {}", path.clone().lock()?.to_string_lossy());
                 Ok((path.clone(), true))
             }
 
@@ -140,8 +134,8 @@ impl UrlCache {
         create_dir_all(&self.base_directory)?;
 
         // We'll avoid case distinction because Windows doesn't
-        let distribution = Uniform::new('a', 'z');
-        let path: String = thread_rng().sample_iter(distribution).take(RANDOM_NAME_LENGTH).collect();
+        let distribution = Uniform::new_inclusive('a', 'z').unwrap();
+        let path: String = rng().sample_iter(distribution).take(RANDOM_NAME_LENGTH).collect();
         let path = prefix.to_string() + &path;
         Ok(self.base_directory.join(path))
     }
