@@ -3,14 +3,12 @@ use super::{
     git_url::*,
 };
 
-use std::{collections::*, path::*};
-
 impl URL for GitUrl {
     fn context(&self) -> &UrlContext {
         &*self.context
     }
 
-    fn query(&self) -> Option<HashMap<String, String>> {
+    fn query(&self) -> Option<UrlQuery> {
         self.repository_url.query()
     }
 
@@ -18,8 +16,16 @@ impl URL for GitUrl {
         self.repository_url.fragment()
     }
 
-    fn local(&self) -> Option<PathBuf> {
-        None
+    fn format(&self) -> Option<String> {
+        get_format_from_path(&self.path)
+    }
+
+    fn base(&self) -> Option<UrlRef> {
+        get_relative_path_parent(&self.path).map(|path| self.new_with(path).into())
+    }
+
+    fn relative(&self, path: &str) -> UrlRef {
+        self.new_with(self.path.join(path)).into()
     }
 
     #[cfg(feature = "blocking")]
@@ -28,7 +34,7 @@ impl URL for GitUrl {
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: GitUrl) -> Result<UrlRef, UrlError> {
@@ -39,29 +45,13 @@ impl URL for GitUrl {
         Ok(Box::pin(conform_async(self.clone())))
     }
 
-    fn format(&self) -> Option<String> {
-        get_format_from_path(&self.path)
-    }
-
-    fn base(&self) -> Option<UrlRef> {
-        get_relative_path_parent(&self.path).map(|p| self.new_with(p).into())
-    }
-
-    fn relative(&self, path: &str) -> UrlRef {
-        self.new_with(self.path.join(path)).into()
-    }
-
-    fn key(&self) -> String {
-        format!("{}", self)
-    }
-
     #[cfg(feature = "blocking")]
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         Ok(Box::new(self.open_cursor()?))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use super::super::errors::*;
 
         async fn open_async(url: GitUrl) -> Result<AsyncReadRef, UrlError> {
@@ -112,20 +102,20 @@ impl GitUrl {
             info!("opening local repository: {}", self.repository_gix_url);
 
             let path = self.repository_gix_url.path.to_string();
-            open(path).map_err(|e| GitError::from(e))?
+            open(path).map_err(|error| GitError::from(error))?
         } else {
             let (directory, existing) = self.context.cache.directory(&self.repository_url.to_string(), "git-")?;
-            let directory = directory.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let directory = directory.lock()?;
 
             if existing {
-                info!("opening cached repository: {}", directory.to_string_lossy());
+                info!("opening cached repository: {}", directory.display());
 
-                open(directory.clone()).map_err(|e| GitError::from(e))?
+                open(directory.clone()).map_err(|error| GitError::from(error))?
             } else {
-                info!("cloning repository to: {}", directory.to_string_lossy());
+                info!("cloning repository to: {}", directory.display());
 
                 let mut prepare_fetch = prepare_clone_bare(self.repository_gix_url.clone(), directory.clone())
-                    .map_err(|e| GitError::from(e))?
+                    .map_err(|error| GitError::from(error))?
                     .configure_remote(|remote| Ok(remote));
 
                 if commit.is_none() {
@@ -134,12 +124,12 @@ impl GitUrl {
                     prepare_fetch = prepare_fetch
                         .with_shallow(remote::fetch::Shallow::DepthAtRemote(one))
                         .with_ref_name(ref_name.as_ref()) // branch or tag (option)
-                        .map_err(|e| GitError::from(e))?;
+                        .map_err(|error| GitError::from(error))?;
                 }
 
                 let (repository, _) = prepare_fetch
                     .fetch_only(progress::Discard, &interrupt::IS_INTERRUPTED)
-                    .map_err(|e| GitError::from(e))?;
+                    .map_err(|error| GitError::from(error))?;
 
                 repository
             }
@@ -149,27 +139,26 @@ impl GitUrl {
         let tree = match commit {
             // Use a specific commit
             Some(commit) => {
-                let commit = repository.find_commit(commit).map_err(|e| GitError::from(e))?;
-                commit.tree().map_err(|e| GitError::from(e))?
+                let commit = repository.find_commit(commit).map_err(|error| GitError::from(error))?;
+                commit.tree().map_err(|error| GitError::from(error))?
             }
 
             // Use the HEAD (tip of the branch)
-            None => repository.head_tree().map_err(|e| GitError::from(e))?,
+            None => repository.head_tree().map_err(|error| GitError::from(error))?,
         };
 
-        match tree.lookup_entry_by_path(self.path.as_str()).map_err(|e| GitError::from(e))? {
-            Some(entry) => {
-                // Note: the entire object's data will be in memory,
-                // but at least we can "take" it without cloning
-                let object = entry.object().map_err(|e| GitError::from(e))?;
-                let mut blob = object.try_into_blob().map_err(|e| GitError::from(e))?;
-                let data = blob.take_data();
+        let entry = tree
+            .lookup_entry_by_path(self.path.as_str())
+            .map_err(|error| GitError::from(error))?
+            .ok_or_else(|| UrlError::new_io_not_found(self))?;
 
-                Ok(Cursor::new(data))
-            }
+        // Note: the entire object's data will be in memory,
+        // but at least we can "take" it without cloning
+        let object = entry.object().map_err(|error| GitError::from(error))?;
+        let mut blob = object.try_into_blob().map_err(|error| GitError::from(error))?;
+        let data = blob.take_data();
 
-            None => Err(UrlError::new_io_not_found(self)),
-        }
+        Ok(Cursor::new(data))
     }
 }
 

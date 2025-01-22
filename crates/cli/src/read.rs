@@ -1,6 +1,7 @@
 use super::{cli::*, errors::*};
 
 impl CLI {
+    /// Read.
     pub fn read(&self) -> Result<(), MainError> {
         if self.asynchronous {
             #[cfg(feature = "async")]
@@ -36,7 +37,8 @@ impl CLI {
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
-        let url = context.url_or_file_path(&self.input_url_or_path)?;
+        let url = self.input_url_or_path.as_ref().unwrap();
+        let url = context.url_or_file_path(url)?;
 
         info!("reading from URL (blocking): {}", url);
 
@@ -71,7 +73,8 @@ impl CLI {
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
-        let url = context.url_or_file_path_async(&self.input_url_or_path).await?;
+        let url = self.input_url_or_path.as_ref().unwrap();
+        let url = context.url_or_file_path_async(url).await?;
 
         info!("reading from URL (asynchronous): {}", url);
 

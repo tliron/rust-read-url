@@ -28,7 +28,7 @@ pub struct CLI {
 
     /// can be a URL or a file path
     #[arg(verbatim_doc_comment)]
-    pub input_url_or_path: String,
+    pub input_url_or_path: Option<String>,
 
     /// output file path;
     /// when absent will write to stdout
@@ -56,7 +56,7 @@ pub struct CLI {
     /// log to file path;
     /// defaults to stderr, applying --colorize
     #[arg(long, long = "log", short = 'l', verbatim_doc_comment)]
-    pub log_path: Option<String>,
+    pub log_path: Option<PathBuf>,
 
     /// add a log verbosity level;
     /// can be used 3 times
@@ -77,13 +77,15 @@ pub struct CLI {
 // SubCommands
 //
 
+// TODO: subcommands don't work with arg
+
 #[derive(Subcommand)]
 #[command()]
 pub enum SubCommand {
-    /// show the version of compris
+    /// show the version of read-url
     #[command(action = ArgAction::Version)]
     Version(Version),
 
-    /// output the shell autocompletion script
+    /// output the shell auto-completion script
     Completion(Completion),
 }

@@ -42,7 +42,7 @@ type DependentArchiveHandle<'own> = ArchiveHandle<'own, File>;
 impl MovableArchiveHandle {
     /// Constructor.
     pub fn new_for(file: File) -> Result<MovableArchiveHandle, UrlError> {
-        MovableArchiveHandle::try_new(file, |file| -> Result<DependentArchiveHandle, UrlError> { Ok(file.read_zip()?) })
+        MovableArchiveHandle::try_new(file, |file| Ok(file.read_zip()?))
     }
 }
 
@@ -66,11 +66,8 @@ type DependentEntryHandle<'own> = EntryHandle<'own, File>;
 impl MovableArchiveHandle {
     /// A version of [ArchiveHandle::by_name] that returns a [MovableEntryHandle].
     pub fn by_name(self, url: &ZipUrl) -> Result<MovableEntryHandle, UrlError> {
-        MovableEntryHandle::try_new(self, |archive_handle| -> Result<DependentEntryHandle, UrlError> {
-            match archive_handle.borrow_dependent().by_name(&url.path) {
-                Some(entry) => Ok(entry),
-                None => Err(UrlError::new_io_not_found(url)),
-            }
+        MovableEntryHandle::try_new(self, |movable_archive_handle| {
+            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| UrlError::new_io_not_found(url))
         })
     }
 }
@@ -95,14 +92,14 @@ type DependentReader<'own> = Box<dyn io::Read + 'own>;
 impl MovableEntryHandle {
     /// A version of [EntryHandle::reader] that returns a [MovableEntryHandleReader].
     pub fn reader(self) -> Result<MovableEntryHandleReader, UrlError> {
-        MovableEntryHandleReader::try_new(self, |entry_handle| -> Result<DependentReader, UrlError> {
-            Ok(Box::new(entry_handle.borrow_dependent().reader()))
+        MovableEntryHandleReader::try_new(self, |movable_entry_handle| {
+            Ok(Box::new(movable_entry_handle.borrow_dependent().reader()))
         })
     }
 }
 
 impl io::Read for MovableEntryHandleReader {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.with_dependent_mut(|_entry_handle, reader| reader.read(buf))
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        self.with_dependent_mut(|_entry_handle, reader| reader.read(buffer))
     }
 }

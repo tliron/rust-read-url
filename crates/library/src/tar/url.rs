@@ -3,14 +3,12 @@ use super::{
     tar_url::*,
 };
 
-use std::{collections::*, path::*};
-
 impl URL for TarUrl {
     fn context(&self) -> &UrlContext {
         &*self.context
     }
 
-    fn query(&self) -> Option<HashMap<String, String>> {
+    fn query(&self) -> Option<UrlQuery> {
         self.archive_url.query()
     }
 
@@ -18,8 +16,16 @@ impl URL for TarUrl {
         self.archive_url.fragment()
     }
 
-    fn local(&self) -> Option<PathBuf> {
-        None
+    fn format(&self) -> Option<String> {
+        get_format_from_path(&self.path)
+    }
+
+    fn base(&self) -> Option<UrlRef> {
+        get_relative_path_parent(&self.path).map(|path| self.new_with(path).into())
+    }
+
+    fn relative(&self, path: &str) -> UrlRef {
+        self.new_with(self.path.join(path)).into()
     }
 
     #[cfg(feature = "blocking")]
@@ -28,7 +34,7 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: TarUrl) -> Result<UrlRef, UrlError> {
@@ -39,28 +45,12 @@ impl URL for TarUrl {
         Ok(Box::pin(conform_async(self.clone())))
     }
 
-    fn format(&self) -> Option<String> {
-        get_format_from_path(&self.path)
-    }
-
-    fn base(&self) -> Option<UrlRef> {
-        get_relative_path_parent(&self.path).map(|p| self.new_with(p).into())
-    }
-
-    fn relative(&self, path: &str) -> UrlRef {
-        self.new_with(self.path.join(path)).into()
-    }
-
-    fn key(&self) -> String {
-        format!("{}", self)
-    }
-
     #[cfg(feature = "blocking")]
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         use {
             super::{super::errors::*, compression::*},
-            gix::bstr::*,
             kutil_io::reader::*,
+            std::str,
             tar::*,
         };
 
@@ -91,7 +81,7 @@ impl URL for TarUrl {
         let mut size = None;
         for entry in archive.entries()? {
             let entry = entry?;
-            match entry.path_bytes().to_str() {
+            match str::from_utf8(&entry.path_bytes()) {
                 Ok(path) => {
                     if path == self.path {
                         size = Some(entry.size() as usize);
@@ -126,11 +116,11 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use {
             super::{super::errors::*, compression::*},
             futures::*,
-            gix::bstr::*,
+            std::str,
             tokio_tar::*,
         };
 
@@ -165,7 +155,7 @@ impl URL for TarUrl {
             let mut entries = archive.entries()?;
             while let Some(entry) = entries.next().await {
                 let entry = entry?;
-                match entry.path_bytes().to_str() {
+                match str::from_utf8(&entry.path_bytes()) {
                     Ok(path) => {
                         if path == url.path {
                             return Ok(Box::pin(entry));

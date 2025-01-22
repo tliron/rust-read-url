@@ -20,7 +20,7 @@ use {
 /// within the archive. The fragment of the archive URL is used to explicitly set the
 /// compression algorithm. If the compression is not explicity set, will attempt to determine
 /// it according to the format of the archive URL.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct TarUrl {
     /// The archive [URL].
     pub archive_url: Arc<UrlRef>,
@@ -42,10 +42,10 @@ impl TarUrl {
 
     /// Compression from archive URL fragment.
     pub fn compression_from(archive_url: &UrlRef) -> Result<Option<TarCompression>, UrlError> {
-        match archive_url.fragment() {
-            Some(fragment) => Ok(Some(TarCompression::try_from(fragment.as_str())?)),
-            None => Ok(None),
-        }
+        Ok(match archive_url.fragment() {
+            Some(fragment) => Some(TarCompression::try_from(fragment.as_str())?),
+            None => None,
+        })
     }
 
     /// Constructor.

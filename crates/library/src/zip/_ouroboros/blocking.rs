@@ -38,10 +38,7 @@ impl ZipReader {
                 archive_builder: |file: &File| -> Result<ArchiveHandle<'_, File>, UrlError> { Ok(file.read_zip()?) },
 
                 entry_builder: |archive: &ArchiveHandle<'_, File>| -> Result<EntryHandle<'_, File>, UrlError> {
-                    match archive.by_name(entry_path) {
-                        Some(entry) => Ok(entry),
-                        None => Err(UrlError::new_io_not_found(url)),
-                    }
+                    archive.by_name(entry_path).ok_or_else(|| UrlError::new_io_not_found(url))
                 },
 
                 reader_builder: |entry: &EntryHandle<'_, File>| -> Result<Box<dyn io::Read + '_>, UrlError> {

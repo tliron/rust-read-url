@@ -10,8 +10,9 @@ read-url gets you an `io::Read` or a `tokio::io::AsyncRead` from a wide variety 
 including entries in archives and code repositories using a URL notation inspired by Java's
 [JarURLConnection](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/JarURLConnection.html).
 
-We strongly recommend starting with the [examples](crates/library/examples/), specifically
-`start_here.rs`. They are designed to give you a tour of the API and its features.
+We strongly recommend starting with the
+[examples](https://github.com/tliron/rust-read-url/tree/main/crates/library/examples),
+specifically `start_here.rs`. They are designed to give you a tour of the API and its features.
 
 ```rust
 use read_url::*;
@@ -144,9 +145,9 @@ with that API:
     tar:local/relative/path/cloud.tar.gz!path/to/main.yaml
 
 Decompression is automatically detected depending on the path suffix. `.tar.gz`,
-`.tgz`, `.tar.zstd`, and `.tar.zst` are supported. Sure, there are a zillion other
-algorithms, but we decided to include 1) the most common, and 2) the most wanted. You
-can also specify the decompression algorithm explicitly using the URL fragment:
+`.tgz`, `.tar.zstd`, and `.tar.zst` are supported. Sure, there are many other
+algorithms in use, but we decided to include 1) the most common, and 2) the most wanted.
+You can also specify the decompression algorithm explicitly using the URL fragment:
 
     tar:/absolute/path/cloud#gzip!path/to/main.yaml
     tar:relative/path/cloud#zstd!path/to/main.yaml
@@ -168,7 +169,7 @@ Entries in zip files. Example:
 Note that zip files require random file access and thus *must* be fully accessible.
 Consequently for remote zips the entire archive will be downloaded in order to access a
 single entry. Read-url will optimize by downloading the archive only once per context.
-Subsequent URLs accessing referring to the archive will use the existing download.
+Other URLs referring to the archive will use the existing download.
 
 If you have a choice of compression technologies and want efficient support for
 remote access then you should prefer tarballs to zip files.
@@ -190,8 +191,8 @@ the tip), or a commit hash in hex. Example of a branch name:
 Because we are only interested in reading one file, not otherwise working with the git
 repository, read-url will do nothing more than the the bare minimum required, i.e. a
 bare (not checked out) shallow clone of just the specified reference. Read-url will
-also optimize by cloning the archive only once per context. Subsequent URLs accessing
-referring to the repository will use the existing clone.
+also optimize by cloning the archive only once per context. Other URLs referring to the
+repository will use the existing clone.
 
 ### `internal:`
 
@@ -214,7 +215,6 @@ Like much of the Rust ecosystem, licensed under your choice of either of
 * [Apache License, Version 2.0](LICENSE-APACHE)
 * [MIT license](LICENSE-MIT)
 
-Unless you explicitly state otherwise, any contribution intentionally
-submitted for inclusion in the work by you, as defined in the Apache-2.0
-license, shall be dual licensed as above, without any additional terms or
-conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in
+the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+additional terms or conditions.

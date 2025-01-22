@@ -15,7 +15,7 @@ impl UrlContext {
     ) -> Result<UrlRef, UrlError> {
         // Note: gix will strip the query and fragment, which is why we are also keeping the original URL
         let repository_gix_url = gix::Url::from_bytes(conformed_repository_url.to_string().as_bytes().into())
-            .map_err(|e| GitError::from(e))?;
+            .map_err(|error| GitError::from(error))?;
 
         Ok(GitUrl::new(self, Arc::new(conformed_repository_url), repository_gix_url, path).into())
     }

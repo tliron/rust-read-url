@@ -7,7 +7,7 @@ use std::fmt;
 //
 
 /// Tar compression.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum TarCompression {
     /// No compression.
     None,
@@ -33,10 +33,13 @@ impl TryFrom<&str> for TarCompression {
 
 impl fmt::Display for TarCompression {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::None => fmt::Display::fmt("none", formatter),
-            Self::GZip => fmt::Display::fmt("gzip", formatter),
-            Self::Zstd => fmt::Display::fmt("zstd", formatter),
-        }
+        fmt::Display::fmt(
+            match self {
+                Self::None => "none",
+                Self::GZip => "gzip",
+                Self::Zstd => "zstd",
+            },
+            formatter,
+        )
     }
 }

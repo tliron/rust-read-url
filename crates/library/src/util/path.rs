@@ -31,7 +31,7 @@ where
         return Some("tar.zstd".into());
     }
 
-    path.extension().map(|e| e.into())
+    path.extension().map(|extension| extension.into())
 }
 
 /// Path parent with trailing slash.
@@ -40,8 +40,8 @@ where
     PathT: Into<RelativePathBuf>,
 {
     let path: RelativePathBuf = path.into();
-    path.parent().map(|p| {
-        let mut parent_path = p.to_relative_path_buf();
+    path.parent().map(|path| {
+        let mut parent_path = path.to_relative_path_buf();
 
         // Avoid double trailing slashes (for root path)
         if !parent_path.as_str().ends_with("/") {

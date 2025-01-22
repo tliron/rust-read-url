@@ -93,7 +93,7 @@ pub fn main() -> Result<(), UrlError> {
     utils::dump(&url)?;
 
     utils::heading("relative to http");
-    let url = context.url("tar:main/assets/archives/archive.tar.gz!two.txt")?;
+    let url = context.url("tar:assets/archives/archive.tar.gz!two.txt")?;
     utils::dump(&url)?;
 
     // When we created the base URLs above, we actually used absolute_url() instead of url()

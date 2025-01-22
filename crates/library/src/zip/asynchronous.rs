@@ -1,82 +1,115 @@
-use super::super::errors::*;
+use super::{super::errors::*, zip_url::*};
 
 use {
-    ouroboros::*,
     positioned_io::*,
     rc_zip_tokio::*,
+    self_cell::*,
     std::{pin::*, sync::*, task::*},
     tokio::io,
 };
 
+type RandomAccessFileRef = Arc<RandomAccessFile>;
+
 //
-// AsyncZipReader
+// AsyncReadZipMove
 //
 
-/// Async zip reader.
-pub struct AsyncZipReader {
-    internal: AsyncZipReaderInternal,
+/// A version of [ReadZip] that takes ownership of self.
+pub trait AsyncReadZipMove {
+    /// A version of [ReadZip::read_zip] that takes ownership of self.
+    #[allow(async_fn_in_trait)]
+    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, UrlError>;
 }
 
-impl AsyncZipReader {
+impl AsyncReadZipMove for Arc<RandomAccessFile> {
+    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, UrlError> {
+        AsyncMovableArchiveHandle::new_for(self).await
+    }
+}
+
+//
+// AsyncMovableArchiveHandle
+//
+
+self_cell!(
+    /// An [ArchiveHandle] that owns its [RandomAccessFile].
+    pub struct AsyncMovableArchiveHandle {
+        owner: RandomAccessFileRef,
+
+        #[covariant, async_builder]
+        dependent: DependentArchiveHandle,
+    }
+);
+
+// self_cell needs a non-nested type name
+type DependentArchiveHandle<'own> = ArchiveHandle<'own, RandomAccessFileRef>;
+
+impl AsyncMovableArchiveHandle {
     /// Constructor.
-    pub async fn new(file: Arc<RandomAccessFile>, path: &str, url_representation: &str) -> Result<Self, UrlError> {
-        let path = path.to_string();
-        let url_representation = url_representation.to_string();
+    pub async fn new_for(file: RandomAccessFileRef) -> Result<AsyncMovableArchiveHandle, UrlError> {
+        AsyncMovableArchiveHandle::try_new(file, async |file| file.read_zip().await.map_err(|error| error.into())).await
+    }
+}
 
-        Ok(Self {
-            internal: AsyncZipReaderInternalAsyncTryBuilder::<_, _, _, UrlError> {
-                file,
+//
+// AsyncMovableEntryHandle
+//
 
-                archive_builder: |file: &Arc<RandomAccessFile>| Box::pin(async move { Ok(file.read_zip().await?) }),
+self_cell!(
+    /// An [EntryHandle] that owns its [AsyncMovableArchiveHandle].
+    pub struct AsyncMovableEntryHandle {
+        owner: AsyncMovableArchiveHandle,
 
-                entry_builder: |archive: &ArchiveHandle<'_, Arc<RandomAccessFile>>| {
-                    Box::pin(async move {
-                        match archive.by_name(path) {
-                            Some(entry) => Ok(entry),
-                            None => Err(UrlError::new_io_not_found(url_representation)),
-                        }
-                    })
-                },
+        #[covariant, async_builder]
+        dependent: DependentEntryHandle,
+    }
+);
 
-                reader_builder: |entry: &EntryHandle<'_, Arc<RandomAccessFile>>| {
-                    Box::pin(async move {
-                        let reader: Box<dyn io::AsyncRead + Unpin + '_> = Box::new(entry.reader());
-                        Ok(Pin::new(reader))
-                    })
-                },
-            }
-            .try_build()
-            .await?,
+// self_cell needs a non-nested type name
+type DependentEntryHandle<'own> = EntryHandle<'own, RandomAccessFileRef>;
+
+impl AsyncMovableArchiveHandle {
+    /// A version of [ArchiveHandle::by_name] that returns a [AsyncMovableEntryHandle].
+    pub async fn by_name(self, url: &ZipUrl) -> Result<AsyncMovableEntryHandle, UrlError> {
+        AsyncMovableEntryHandle::try_new(self, async |movable_archive_handle| {
+            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| UrlError::new_io_not_found(url))
+        })
+        .await
+    }
+}
+
+//
+// AsyncMovableEntryHandleReader
+//
+
+self_cell!(
+    /// An [io::AsyncRead] that owns its [AsyncMovableEntryHandle].
+    pub struct AsyncMovableEntryHandleReader {
+        owner: AsyncMovableEntryHandle,
+
+        #[covariant]
+        dependent: DependentReader,
+    }
+);
+
+// self_cell needs a non-nested type name
+type DependentReader<'own> = Pin<Box<dyn io::AsyncRead + 'own>>;
+
+impl AsyncMovableEntryHandle {
+    /// A version of [EntryHandle::reader] that returns an [AsyncMovableEntryHandleReader].
+    pub fn reader(self) -> Result<AsyncMovableEntryHandleReader, UrlError> {
+        AsyncMovableEntryHandleReader::try_new(self, |movable_entry_handle| {
+            Ok(Box::pin(movable_entry_handle.borrow_dependent().reader()))
         })
     }
 }
 
-impl io::AsyncRead for AsyncZipReader {
+impl io::AsyncRead for AsyncMovableEntryHandleReader {
     fn poll_read(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &mut io::ReadBuf<'_>,
-    ) -> Poll<std::io::Result<()>> {
-        self.internal.with_reader_mut(|reader| {
-            let reader = reader.as_mut();
-            reader.poll_read(cx, buf)
-        })
+        self: Pin<&mut Self>,
+        context: &mut Context<'_>,
+        buffer: &mut io::ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
+        self.get_mut().with_dependent_mut(|_movable_entry_handle, reader| reader.as_mut().poll_read(context, buffer))
     }
-}
-
-#[self_referencing]
-struct AsyncZipReaderInternal {
-    file: Arc<RandomAccessFile>,
-
-    #[borrows(file)]
-    #[covariant]
-    archive: ArchiveHandle<'this, Arc<RandomAccessFile>>,
-
-    #[borrows(archive)]
-    #[covariant]
-    entry: EntryHandle<'this, Arc<RandomAccessFile>>,
-
-    #[borrows(entry)]
-    #[covariant]
-    reader: Pin<Box<dyn io::AsyncRead + Unpin + 'this>>,
 }

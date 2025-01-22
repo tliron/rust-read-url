@@ -54,14 +54,15 @@ impl UrlContext {
             Ok(url) => match url.scheme() {
                 "internal" => {
                     let (query, fragment) = url_query_and_fragment(&url);
-                    let url = self.internal_url(url.path().into(), url.host_str().map(|h| h.into()), query, fragment);
+                    let url =
+                        self.internal_url(url.path().into(), url.host_str().map(|host| host.into()), query, fragment);
                     Ok(url.conform_async()?.await?)
                 }
 
                 #[cfg(feature = "file")]
                 "file" => {
                     let (query, fragment) = url_query_and_fragment(&url);
-                    let url = self.file_url(url.path().into(), url.host_str().map(|h| h.into()), query, fragment);
+                    let url = self.file_url(url.path().into(), url.host_str().map(|host| host.into()), query, fragment);
                     Ok(url.conform_async()?.await?)
                 }
 

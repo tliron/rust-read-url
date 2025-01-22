@@ -15,17 +15,17 @@ impl UrlContext {
     /// [absolute_url_or_file_path](UrlContext::absolute_url_or_file_path).
     pub fn absolute_url(self: &UrlContextRef, url_representation: &str) -> Result<UrlRef, UrlError> {
         let url_representation = self.get_url_or_override(url_representation.into())?;
-        let url = url::Url::parse(&url_representation).map_err(|e| UrlError::MalformedUrl(e.to_string()))?;
+        let url = url::Url::parse(&url_representation).map_err(|error| UrlError::MalformedUrl(error.to_string()))?;
         match url.scheme() {
             "internal" => {
                 let (query, fragment) = url_query_and_fragment(&url);
-                Ok(self.internal_url(url.path().into(), url.host_str().map(|h| h.into()), query, fragment))
+                Ok(self.internal_url(url.path().into(), url.host_str().map(|host| host.into()), query, fragment))
             }
 
             #[cfg(feature = "file")]
             "file" => {
                 let (query, fragment) = url_query_and_fragment(&url);
-                Ok(self.file_url(url.path().into(), url.host_str().map(|h| h.into()), query, fragment))
+                Ok(self.file_url(url.path().into(), url.host_str().map(|host| host.into()), query, fragment))
             }
 
             #[cfg(feature = "http")]
