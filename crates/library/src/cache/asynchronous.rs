@@ -17,13 +17,10 @@ impl UrlCache {
     pub async fn file_from_async(&self, url: &UrlRef, prefix: &str) -> Result<(PathBufRef, bool), UrlError> {
         let key = url.to_string();
 
-        let mut files = self.files.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut files = self.files.lock()?;
         match files.get(&key) {
             Some(path) => {
-                info!(
-                    "existing file: {}",
-                    path.clone().lock().map_err(|e| UrlError::Mutex(e.to_string()))?.to_string_lossy()
-                );
+                info!("existing file: {}", path.clone().lock()?.to_string_lossy());
                 Ok((path.clone(), true))
             }
 

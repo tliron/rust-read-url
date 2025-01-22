@@ -27,8 +27,7 @@ impl UrlContext {
         content: &'static [u8],
         format: Option<String>,
     ) -> Result<(), UrlError> {
-        let mut internal_url_registry =
-            self.internal_url_registry.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut internal_url_registry = self.internal_url_registry.lock()?;
         internal_url_registry.insert(
             path_representation,
             RegisteredInternalUrl::new(slashable, base_path_representation, content, format),
@@ -38,8 +37,7 @@ impl UrlContext {
 
     /// Deregister an [InternalUrl].
     pub fn deregister_internal_url(self: &UrlContextRef, path: &String) -> Result<(), UrlError> {
-        let mut internal_url_registry =
-            self.internal_url_registry.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut internal_url_registry = self.internal_url_registry.lock()?;
         internal_url_registry.remove(path);
         Ok(())
     }
@@ -52,8 +50,7 @@ impl UrlContext {
         content: &'static [u8],
         format: Option<String>,
     ) -> Result<(), UrlError> {
-        let mut internal_url_registry =
-            GLOBAL_INTERNAL_URL_REGISTRY.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut internal_url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
         internal_url_registry.insert(
             path_representation,
             RegisteredInternalUrl::new(slashable, base_path_representation, content, format),
@@ -63,8 +60,7 @@ impl UrlContext {
 
     /// Deregister a global [InternalUrl].
     pub fn deregister_global_internal_url(path: &String) -> Result<(), UrlError> {
-        let mut internal_url_registry =
-            GLOBAL_INTERNAL_URL_REGISTRY.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let mut internal_url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
         internal_url_registry.remove(path);
         Ok(())
     }
@@ -74,13 +70,13 @@ impl UrlContext {
     /// Tries the context's registry first, the global registry next.
     pub fn internal_url_content(self: &UrlContextRef, path: &String) -> Result<Option<&'static [u8]>, UrlError> {
         // Try context registry first
-        let internal_url_registry = self.internal_url_registry.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let internal_url_registry = self.internal_url_registry.lock()?;
         if let Some(registered_internal_url) = internal_url_registry.get(path) {
             return Ok(Some(registered_internal_url.content));
         }
 
         // Then the global registry
-        let internal_url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let internal_url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
         match internal_url_registry.get(path) {
             Some(registered_internal_url) => Ok(Some(registered_internal_url.content)),
             None => Ok(None),
@@ -95,13 +91,13 @@ impl UrlContext {
         path: &String,
     ) -> Result<Option<(bool, Option<String>, Option<String>)>, UrlError> {
         // Try context registry first
-        let internal_url_registry = self.internal_url_registry.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let internal_url_registry = self.internal_url_registry.lock()?;
         if let Some(registered_internal_url) = internal_url_registry.get(path) {
             return Ok(Some(registered_internal_url.metadata()));
         }
 
         // Then the global registry
-        let internal_url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let internal_url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
         match internal_url_registry.get(path) {
             Some(registered_internal_url) => Ok(Some(registered_internal_url.metadata())),
             None => Ok(None),

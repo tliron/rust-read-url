@@ -115,7 +115,7 @@ impl GitUrl {
             open(path).map_err(|e| GitError::from(e))?
         } else {
             let (directory, existing) = self.context.cache.directory(&self.repository_url.to_string(), "git-")?;
-            let directory = directory.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let directory = directory.lock()?;
 
             if existing {
                 info!("opening cached repository: {}", directory.to_string_lossy());
