@@ -56,7 +56,7 @@ pub struct CLI {
     /// log to file path;
     /// defaults to stderr, applying --colorize
     #[arg(long, long = "log", short = 'l', verbatim_doc_comment)]
-    pub log_path: Option<String>,
+    pub log_path: Option<PathBuf>,
 
     /// add a log verbosity level;
     /// can be used 3 times
@@ -84,6 +84,6 @@ pub enum SubCommand {
     #[command(action = ArgAction::Version)]
     Version(Version),
 
-    /// output the shell autocompletion script
+    /// output the shell auto-completion script
     Completion(Completion),
 }

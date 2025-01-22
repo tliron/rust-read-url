@@ -10,12 +10,12 @@ pub fn main() -> Result<(), UrlError> {
     utils::heading("mock");
     let url = context.mock_url(
         "happy:/go=lucky".into(),
-        false,                                 // not "slashable"
-        Some("happy:/".into()),                // base URL (when "slashable" is false)
-        Some("hello world".as_bytes().into()), // content
-        Some("text".into()),                   // format
+        false,                  // not "slashable"
+        Some("happy:/".into()), // base URL (when "slashable" is false)
         Some(HashMap::from([("key1".into(), "value1".into()), ("key2".into(), "value2".into())])), // query
-        Some("a-fragment".into()),             // fragment
+        Some("a-fragment".into()), // fragment
+        Some("text".into()),    // format
+        Some("hello world".as_bytes().into()), // content
     );
     utils::dump(&url)?;
 

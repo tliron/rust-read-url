@@ -10,10 +10,10 @@ use std::{collections::*, path::*, sync::*};
 pub type UrlContextRef = Arc<UrlContext>;
 
 /// Context for [URL](super::super::URL).
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct UrlContext {
     /// Base URLs.
-    pub base_urls: Arc<Vec<UrlRef>>,
+    pub base_urls: Arc<Vec<Arc<UrlRef>>>,
 
     /// URL overrides.
     pub url_overrides: Arc<Mutex<HashMap<String, String>>>,
@@ -22,7 +22,7 @@ pub struct UrlContext {
     pub cache: Arc<UrlCache>,
 
     /// Internal URL registry.
-    pub internal_url_registry: Arc<Mutex<HashMap<String, RegisteredInternalUrl>>>,
+    pub internal_url_registry: Arc<InternalUrlRegistry>,
 
     /// Common HTTP client.
     ///
@@ -56,9 +56,12 @@ impl UrlContext {
     /// Return a child context with different base URLs.
     ///
     /// The child context shares everything else with the parent.
-    pub fn with_base_urls(self: &UrlContextRef, base_urls: Vec<UrlRef>) -> UrlContextRef {
+    pub fn with_base_urls<UrlRefT>(self: &UrlContextRef, base_urls: Vec<UrlRefT>) -> UrlContextRef
+    where
+        UrlRefT: Into<Arc<UrlRef>>,
+    {
         UrlContext {
-            base_urls: Arc::new(base_urls),
+            base_urls: Arc::new(base_urls.into_iter().map(|u| u.into()).collect()),
             url_overrides: self.url_overrides.clone(),
             cache: self.cache.clone(),
             internal_url_registry: self.internal_url_registry.clone(),
@@ -83,5 +86,10 @@ impl UrlContext {
             http_client: self.http_client.clone(),
         }
         .into()
+    }
+
+    /// Clone base URLs.
+    pub fn clone_base_urls(&self) -> Vec<Arc<UrlRef>> {
+        self.base_urls.iter().map(|u| u.clone()).collect()
     }
 }

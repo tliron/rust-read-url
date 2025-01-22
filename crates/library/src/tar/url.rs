@@ -3,40 +3,17 @@ use super::{
     tar_url::*,
 };
 
-use std::{collections::*, path::*};
-
 impl URL for TarUrl {
     fn context(&self) -> &UrlContext {
         &*self.context
     }
 
-    fn query(&self) -> Option<HashMap<String, String>> {
+    fn query(&self) -> Option<UrlQuery> {
         self.archive_url.query()
     }
 
     fn fragment(&self) -> Option<String> {
         self.archive_url.fragment()
-    }
-
-    fn local(&self) -> Option<PathBuf> {
-        None
-    }
-
-    #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
-        self.conform_path()
-    }
-
-    #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, crate::UrlError> {
-        use super::super::errors::*;
-
-        async fn conform_async(mut url: TarUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
-            Ok(url.into())
-        }
-
-        Ok(Box::pin(conform_async(self.clone())))
     }
 
     fn format(&self) -> Option<String> {
@@ -51,8 +28,21 @@ impl URL for TarUrl {
         self.new_with(self.path.join(path)).into()
     }
 
-    fn key(&self) -> String {
-        format!("{}", self)
+    #[cfg(feature = "blocking")]
+    fn conform(&mut self) -> Result<(), crate::UrlError> {
+        self.conform_path()
+    }
+
+    #[cfg(feature = "async")]
+    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+        use super::super::errors::*;
+
+        async fn conform_async(mut url: TarUrl) -> Result<UrlRef, UrlError> {
+            url.conform_path()?;
+            Ok(url.into())
+        }
+
+        Ok(Box::pin(conform_async(self.clone())))
     }
 
     #[cfg(feature = "blocking")]
@@ -126,7 +116,7 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use {
             super::{super::errors::*, compression::*},
             futures::*,

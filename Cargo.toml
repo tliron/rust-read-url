@@ -2,9 +2,9 @@
 members = ["crates/library", "crates/cli"]
 resolver = "3"
 
-# [patch.crates-io]
-# kutil-cli = { path = "../rust-kutil/crates/cli" }
-# kutil-io = { path = "../rust-kutil/crates/io" }
+[patch.crates-io]
+kutil-cli = { path = "../rust-kutil/crates/cli" }
+kutil-io = { path = "../rust-kutil/crates/io" }
 
 [profile.release]
 strip = "debuginfo"
