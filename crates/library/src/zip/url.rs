@@ -58,7 +58,7 @@ impl URL for ZipUrl {
     #[cfg(feature = "blocking")]
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         use {
-            super::{super::errors::*, blocking::*},
+            super::blocking::*,
             std::{fs::*, sync::*},
         };
 
@@ -71,7 +71,7 @@ impl URL for ZipUrl {
             }
         };
 
-        let archive_path = archive_path.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let archive_path = archive_path.lock()?;
 
         let file = File::open(archive_path.clone())?;
         let archive = file.read_zip_move()?;
@@ -105,7 +105,7 @@ impl URL for ZipUrl {
                 }
             };
 
-            let archive_path = archive_path.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let archive_path = archive_path.lock()?;
 
             let file = Arc::new(RandomAccessFile::open(archive_path.clone())?);
             let r = AsyncZipReader::new(file, url.path.as_str(), &url.to_string()).await?;
