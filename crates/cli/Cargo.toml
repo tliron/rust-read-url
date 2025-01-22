@@ -1,10 +1,10 @@
 [package]
-edition = "2021"
+edition = "2024"
 
 name = "read-url-cli"
 description = "Read from a wide variety of URL types"
-version = "0.0.3"
-rust-version = "1.84"
+version = "0.0.4"
+rust-version = "1.85"
 
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tliron/rust-read-url"
@@ -18,10 +18,10 @@ keywords = ["url"]
 
 [dependencies]
 anstream = "0.6.18"
-clap = { version = "4.5.26", features = ["derive", "string"] }
+clap = { version = "4.5.31", features = ["derive", "string"] }
 clap_complete_command = "0.6.1"
-kutil-cli = "0.0.3"
-read-url = { path = "../library", version = "0.0.3" }
+kutil-cli = "0.0.4"
+read-url = { path = "../library", version = "0.0.4" }
 thiserror = "2.0.11"
 tracing = "0.1.41"
 tokio = { version = "1.43.0", features = ["io-std", "rt-multi-thread"] }

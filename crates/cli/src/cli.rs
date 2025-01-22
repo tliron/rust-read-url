@@ -84,6 +84,6 @@ pub enum SubCommand {
     #[command(action = ArgAction::Version)]
     Version(Version),
 
-    /// output the shell autocompletion script
+    /// output the shell auto-completion script
     Completion(Completion),
 }
