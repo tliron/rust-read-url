@@ -3,40 +3,17 @@ use super::{
     git_url::*,
 };
 
-use std::{collections::*, path::*};
-
 impl URL for GitUrl {
     fn context(&self) -> &UrlContext {
         &*self.context
     }
 
-    fn query(&self) -> Option<HashMap<String, String>> {
+    fn query(&self) -> Option<UrlQuery> {
         self.repository_url.query()
     }
 
     fn fragment(&self) -> Option<String> {
         self.repository_url.fragment()
-    }
-
-    fn local(&self) -> Option<PathBuf> {
-        None
-    }
-
-    #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
-        self.conform_path()
-    }
-
-    #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, crate::UrlError> {
-        use super::super::errors::*;
-
-        async fn conform_async(mut url: GitUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
-            Ok(url.into())
-        }
-
-        Ok(Box::pin(conform_async(self.clone())))
     }
 
     fn format(&self) -> Option<String> {
@@ -51,8 +28,21 @@ impl URL for GitUrl {
         self.new_with(self.path.join(path)).into()
     }
 
-    fn key(&self) -> String {
-        format!("{}", self)
+    #[cfg(feature = "blocking")]
+    fn conform(&mut self) -> Result<(), crate::UrlError> {
+        self.conform_path()
+    }
+
+    #[cfg(feature = "async")]
+    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+        use super::super::errors::*;
+
+        async fn conform_async(mut url: GitUrl) -> Result<UrlRef, UrlError> {
+            url.conform_path()?;
+            Ok(url.into())
+        }
+
+        Ok(Box::pin(conform_async(self.clone())))
     }
 
     #[cfg(feature = "blocking")]
@@ -61,7 +51,7 @@ impl URL for GitUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use super::super::errors::*;
 
         async fn open_async(url: GitUrl) -> Result<AsyncReadRef, UrlError> {
@@ -115,7 +105,7 @@ impl GitUrl {
             open(path).map_err(|e| GitError::from(e))?
         } else {
             let (directory, existing) = self.context.cache.directory(&self.repository_url.to_string(), "git-")?;
-            let directory = directory.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let directory = directory.lock()?;
 
             if existing {
                 info!("opening cached repository: {}", directory.to_string_lossy());

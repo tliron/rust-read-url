@@ -11,12 +11,11 @@ use {
     tokio::io::AsyncRead,
 };
 
-//
-// URL
-//
-
 /// Common reference type for [URL].
 pub type UrlRef = Box<dyn URL + Send + Sync>;
+
+/// URL query.
+pub type UrlQuery = HashMap<String, String>;
 
 /// Common reference type for [Read](io::Read).
 pub type ReadRef = Box<dyn io::Read>;
@@ -25,27 +24,75 @@ pub type ReadRef = Box<dyn io::Read>;
 #[cfg(feature = "async")]
 pub type AsyncReadRef = Pin<Box<dyn AsyncRead>>;
 
-/// Common [Future] type for [URL::open_async].
-#[cfg(feature = "async")]
-pub type OpenAsyncFuture = Pin<Box<dyn Future<Output = Result<AsyncReadRef, UrlError>>>>;
-
 /// Common [Future] type for [URL::conform_async].
 #[cfg(feature = "async")]
-pub type ConformAsyncFuture = Pin<Box<dyn Future<Output = Result<UrlRef, UrlError>>>>;
+pub type ConformFuture = Pin<Box<dyn Future<Output = Result<UrlRef, UrlError>>>>;
+
+/// Common [Future] type for [URL::open_async].
+#[cfg(feature = "async")]
+pub type OpenFuture = Pin<Box<dyn Future<Output = Result<AsyncReadRef, UrlError>>>>;
+
+//
+// URL
+//
 
 /// URL.
 pub trait URL: fmt::Debug + fmt::Display {
     /// The [UrlContext] used to create this URL.
     fn context(&self) -> &UrlContext;
 
+    /// Returns a string that uniquely identifies the URL.
+    ///
+    /// Useful as a map or cache key.
+    fn key(&self) -> String {
+        format!("{}", self)
+    }
+
     /// The optional query.
-    fn query(&self) -> Option<HashMap<String, String>>;
+    fn query(&self) -> Option<UrlQuery> {
+        None
+    }
 
     /// The optional fragment.
-    fn fragment(&self) -> Option<String>;
+    fn fragment(&self) -> Option<String> {
+        None
+    }
+
+    /// Format of the URL content's canonical representation.
+    ///
+    /// Can return "text", "yaml", "json", "tar", "tar.gz", etc.
+    ///
+    /// The format is often derived from a file extension if available, otherwise
+    /// it might be retrieved from metadata.
+    ///
+    /// An attempt is made to standardize the return values, e.g. a "yml" file
+    /// extension is always returned as "yaml", and a "tgz" file extension is
+    /// always returned as "tar.gz".
+    fn format(&self) -> Option<String> {
+        None
+    }
 
     /// If this URL points to a local path, returns it.
-    fn local(&self) -> Option<PathBuf>;
+    fn local(&self) -> Option<PathBuf> {
+        None
+    }
+
+    /// Returns a URL that is the equivalent of a "base directory" for the URL.
+    ///
+    /// The base URL will normally *not* have the query and fragment of this URL.
+    ///
+    /// Note that the base might not be readable, e.g. you would not be able to call
+    /// [open](URL::open) on it if it is a filesystem directory.
+    fn base(&self) -> Option<UrlRef> {
+        None
+    }
+
+    /// Parses the argument as a path relative to the URL. That means that this
+    /// URL is treated as a "base directory" (see [base](URL::base)). The argument
+    /// supports ".." and ".", with the returned URL path always being absolute.
+    ///
+    /// The relative URL will normally *not* have the query and fragment of this URL.
+    fn relative(&self, path: &str) -> UrlRef;
 
     /// Ensures that the URL conforms with the expectations of its functions. If
     /// successful, this function may change the URL appropriately, e.g. a relative
@@ -62,39 +109,7 @@ pub trait URL: fmt::Debug + fmt::Display {
     /// Am important difference is that instead of mutating the URL it returns the
     /// new conformed version.
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, UrlError>;
-
-    /// Format of the URL content's canonical representation.
-    ///
-    /// Can return "text", "yaml", "json", "tar", "tar.gz", etc.
-    ///
-    /// The format is often derived from a file extension if available, otherwise
-    /// it might be retrieved from metadata.
-    ///
-    /// An attempt is made to standardize the return values, e.g. a "yml" file
-    /// extension is always returned as "yaml", and a "tgz" file extension is
-    /// always returned as "tar.gz".
-    fn format(&self) -> Option<String>;
-
-    /// Returns a URL that is the equivalent of a "base directory" for the URL.
-    ///
-    /// The base URL will normally *not* have the query and fragment of this URL.
-    ///
-    /// Note that the base might not be readable, e.g. you would not be able to call
-    /// [open](URL::open) on it if it is a filesystem directory.
-    fn base(&self) -> Option<UrlRef>;
-
-    /// Parses the argument as a path relative to the URL. That means that this
-    /// URL is treated as a "base directory" (see [base](URL::base)). The argument
-    /// supports ".." and ".", with the returned URL path always being absolute.
-    ///
-    /// The relative URL will normally *not* have the query and fragment of this URL.
-    fn relative(&self, path: &str) -> UrlRef;
-
-    /// Returns a string that uniquely identifies the URL.
-    ///
-    /// Useful as a map or cache key.
-    fn key(&self) -> String;
+    fn conform_async(&self) -> Result<ConformFuture, UrlError>;
 
     /// Opens the URL for reading by providing a `dyn` [Read][io::Read].
     ///
@@ -116,5 +131,5 @@ pub trait URL: fmt::Debug + fmt::Display {
 
     /// Async version of [URL::open]. Provides a `dyn` [AsyncRead](tokio::io::AsyncRead).
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, UrlError>;
+    fn open_async(&self) -> Result<OpenFuture, UrlError>;
 }

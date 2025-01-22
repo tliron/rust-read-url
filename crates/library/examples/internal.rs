@@ -5,14 +5,12 @@ use read_url::*;
 pub fn main() -> Result<(), UrlError> {
     // Internal URLs are useful for providing custom data to consumers of the read-url API
 
-    // We must register static content for each internal URL
-
     UrlContext::register_global_internal_url(
         "/my/content".into(),
-        true,                            // "slashable"
-        None,                            // base URL (when "slashable" is false)
-        "global hello world".as_bytes(), // content
-        Some("text".into()),             // format
+        true,                                   // "slashable"
+        None,                                   // base URL (when "slashable" is false)
+        Some("text".into()),                    // format
+        "global hello world".as_bytes().into(), // content
     )?;
 
     let context = UrlContext::new();
@@ -27,8 +25,8 @@ pub fn main() -> Result<(), UrlError> {
         "/my/content".into(),
         true,
         None,
-        "context hello world".as_bytes(),
         Some("text".into()),
+        "context hello world".as_bytes().into(),
     )?;
 
     utils::heading("internal (context)");

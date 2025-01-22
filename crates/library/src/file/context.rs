@@ -3,7 +3,7 @@ use super::{
     file_url::*,
 };
 
-use std::{collections::*, path::*};
+use std::path::*;
 
 impl UrlContext {
     /// Construct a [FileUrl].
@@ -11,7 +11,7 @@ impl UrlContext {
         self: &UrlContextRef,
         path: PathBuf,
         host: Option<String>,
-        query: Option<HashMap<String, String>>,
+        query: Option<UrlQuery>,
         fragment: Option<String>,
     ) -> UrlRef {
         FileUrl::new(self, path, host, query, fragment).into()

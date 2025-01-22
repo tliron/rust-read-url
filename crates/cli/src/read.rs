@@ -1,6 +1,7 @@
 use super::{cli::*, errors::*};
 
 impl CLI {
+    /// Read.
     pub fn read(&self) -> Result<(), MainError> {
         if self.asynchronous {
             #[cfg(feature = "async")]

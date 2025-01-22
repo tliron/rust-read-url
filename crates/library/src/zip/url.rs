@@ -3,40 +3,17 @@ use super::{
     zip_url::*,
 };
 
-use std::{collections::*, path::*};
-
 impl URL for ZipUrl {
     fn context(&self) -> &UrlContext {
         &*self.context
     }
 
-    fn query(&self) -> Option<HashMap<String, String>> {
+    fn query(&self) -> Option<UrlQuery> {
         self.archive_url.query()
     }
 
     fn fragment(&self) -> Option<String> {
         self.archive_url.fragment()
-    }
-
-    fn local(&self) -> Option<PathBuf> {
-        None
-    }
-
-    #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
-        self.conform_path()
-    }
-
-    #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformAsyncFuture, crate::UrlError> {
-        use super::super::errors::*;
-
-        async fn conform_async(mut url: ZipUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
-            Ok(url.into())
-        }
-
-        Ok(Box::pin(conform_async(self.clone())))
     }
 
     fn format(&self) -> Option<String> {
@@ -51,14 +28,27 @@ impl URL for ZipUrl {
         self.new_with(self.path.join(path)).into()
     }
 
-    fn key(&self) -> String {
-        format!("{}", self)
+    #[cfg(feature = "blocking")]
+    fn conform(&mut self) -> Result<(), crate::UrlError> {
+        self.conform_path()
+    }
+
+    #[cfg(feature = "async")]
+    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+        use super::super::errors::*;
+
+        async fn conform_async(mut url: ZipUrl) -> Result<UrlRef, UrlError> {
+            url.conform_path()?;
+            Ok(url.into())
+        }
+
+        Ok(Box::pin(conform_async(self.clone())))
     }
 
     #[cfg(feature = "blocking")]
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         use {
-            super::{super::errors::*, blocking::*},
+            super::blocking::*,
             std::{fs::*, sync::*},
         };
 
@@ -71,13 +61,15 @@ impl URL for ZipUrl {
             }
         };
 
-        let archive_path = archive_path.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+        let archive_path = archive_path.lock()?;
 
         let file = File::open(archive_path.clone())?;
         let archive = file.read_zip_move()?;
         let entry = archive.by_name(self)?;
         Ok(Box::new(entry.reader()?))
 
+        // Read all:
+        //
         // let archive = file.read_zip()?;
         // if let Some(entry) = archive.by_name(&self.path) {
         //     // We can't detatch the reader, so must read all the bytes here :(
@@ -88,7 +80,7 @@ impl URL for ZipUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenAsyncFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use {
             super::{super::errors::*, asynchronous::*},
             positioned_io::*,
@@ -105,12 +97,15 @@ impl URL for ZipUrl {
                 }
             };
 
-            let archive_path = archive_path.lock().map_err(|e| UrlError::Mutex(e.to_string()))?;
+            let archive_path = archive_path.lock()?;
 
             let file = Arc::new(RandomAccessFile::open(archive_path.clone())?);
-            let r = AsyncZipReader::new(file, url.path.as_str(), &url.to_string()).await?;
-            return Ok(Box::pin(r));
+            let archive = file.read_zip_move().await?;
+            let entry = archive.by_name(&url).await?;
+            Ok(Box::pin(entry.reader()?))
 
+            // Read all:
+            //
             // let archive = file.read_zip().await?;
             // if let Some(entry) = archive.by_name(&url.path) {
             //     // We can't detatch the reader, so must read all the bytes here :(

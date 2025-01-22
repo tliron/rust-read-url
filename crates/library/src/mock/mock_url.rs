@@ -1,6 +1,6 @@
 use super::super::{context::*, url::*, util::*};
 
-use std::{collections::*, fmt};
+use {kutil_io::reader::*, std::fmt};
 
 //
 // MockUrl
@@ -23,7 +23,7 @@ use std::{collections::*, fmt};
 ///
 /// For custom URLs that are supported by general [UrlContext] functions, see
 /// [InternalUrl](super::super::internal::InternalUrl).
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct MockUrl {
     /// The URL representation.
     pub url_representation: String,
@@ -34,17 +34,17 @@ pub struct MockUrl {
     /// The optional base URL representation (used when slashable is false).
     pub base_url_representation: Option<String>,
 
-    /// The content.
-    pub content: Option<Vec<u8>>,
+    /// The optional query.
+    pub query: Option<UrlQuery>,
+
+    /// The optional fragment.
+    pub fragment: Option<String>,
 
     /// The optional format.
     pub format: Option<String>,
 
-    /// The optional query.
-    pub query: Option<HashMap<String, String>>,
-
-    /// The optional fragment.
-    pub fragment: Option<String>,
+    /// The optional content.
+    pub content: Option<ReadableBuffer>,
 
     pub(crate) context: UrlContextRef,
 }
@@ -56,19 +56,19 @@ impl MockUrl {
         url_representation: String,
         slashable: bool,
         base_url_representation: Option<String>,
-        content: Option<Vec<u8>>,
-        format: Option<String>,
-        query: Option<HashMap<String, String>>,
+        query: Option<UrlQuery>,
         fragment: Option<String>,
+        format: Option<String>,
+        content: Option<Vec<u8>>,
     ) -> Self {
         Self {
             url_representation,
             slashable,
             base_url_representation,
-            content,
-            format,
             query,
             fragment,
+            format,
+            content: content.map(ReadableBuffer::new),
             context: context.clone(),
         }
     }
@@ -79,10 +79,10 @@ impl MockUrl {
             context: self.context.clone(),
             url_representation,
             slashable: self.slashable,
-            content: self.content.clone(),
-            format: self.format.clone(),
             query: None,
             fragment: None,
+            format: self.format.clone(),
+            content: self.content.clone(),
             base_url_representation: None,
         }
     }

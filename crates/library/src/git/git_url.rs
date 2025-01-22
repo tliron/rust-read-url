@@ -18,7 +18,7 @@ use {
 ///
 /// Note that the fragment cannot be used with local repositories, which will be accessed in
 /// their current state.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct GitUrl {
     /// The repository [URL].
     pub repository_url: Arc<UrlRef>,
