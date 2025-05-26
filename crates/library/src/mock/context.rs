@@ -13,7 +13,7 @@ impl UrlContext {
         query: Option<UrlQuery>,
         fragment: Option<String>,
         format: Option<String>,
-        content: Option<Vec<u8>>,
+        content: Option<&[u8]>,
     ) -> UrlRef {
         MockUrl::new(self, url_representation, slashable, base_url_representation, query, fragment, format, content)
             .into()
