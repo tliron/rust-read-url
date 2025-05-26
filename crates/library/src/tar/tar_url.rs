@@ -43,7 +43,7 @@ impl TarUrl {
     /// Compression from archive URL fragment.
     pub fn compression_from(archive_url: &UrlRef) -> Result<Option<TarCompression>, UrlError> {
         Ok(match archive_url.fragment() {
-            Some(fragment) => Some(TarCompression::try_from(fragment.as_str())?),
+            Some(fragment) => Some(fragment.parse()?),
             None => None,
         })
     }
@@ -71,7 +71,7 @@ impl TarUrl {
             None => match self.archive_url.format() {
                 Some(archive_format) => match archive_format.as_str() {
                     "tar.gz" => TarCompression::GZip,
-                    "tar.zstd" => TarCompression::Zstd,
+                    "tar.zstd" => TarCompression::Zstandard,
                     _ => TarCompression::None,
                 },
 

@@ -7,7 +7,7 @@ pub fn main() -> Result<(), UrlError> {
 
     let context = UrlContext::new();
 
-    context.register_internal_url("/hello".into(), true, None, Some("text".into()), "hello world".as_bytes().into())?;
+    context.register_internal_url("/hello".into(), true, None, Some("text".into()), "hello world".as_bytes())?;
 
     context.override_url("http://github.com".into(), "internal:///hello".into())?;
 

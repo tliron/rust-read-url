@@ -49,6 +49,7 @@ impl URL for ZipUrl {
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         use {
             super::blocking::*,
+            kutil_std::error::*,
             std::{fs::*, sync::*},
         };
 
@@ -63,7 +64,7 @@ impl URL for ZipUrl {
 
         let archive_path = archive_path.lock()?;
 
-        let file = File::open(archive_path.clone())?;
+        let file = File::open(archive_path.clone()).with_path(archive_path.clone())?;
         let archive = file.read_zip_move()?;
         let entry = archive.by_name(self)?;
         Ok(Box::new(entry.reader()?))
@@ -83,6 +84,7 @@ impl URL for ZipUrl {
     fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use {
             super::{super::errors::*, asynchronous::*},
+            kutil_std::error::*,
             positioned_io::*,
             std::sync::*,
         };
@@ -99,7 +101,7 @@ impl URL for ZipUrl {
 
             let archive_path = archive_path.lock()?;
 
-            let file = Arc::new(RandomAccessFile::open(archive_path.clone())?);
+            let file = Arc::new(RandomAccessFile::open(archive_path.clone()).with_path(archive_path.clone())?);
             let archive = file.read_zip_move().await?;
             let entry = archive.by_name(&url).await?;
             Ok(Box::pin(entry.reader()?))

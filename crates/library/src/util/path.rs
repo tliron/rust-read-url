@@ -3,6 +3,7 @@
 use super::super::errors::*;
 
 use {
+    kutil_std::error::*,
     relative_path::*,
     std::{io, path::*},
 };
@@ -86,7 +87,7 @@ pub fn parse_archive_entry_url_representation(
 pub fn conform_file_path(path: &PathBuf) -> io::Result<PathBuf> {
     // We assume the archive URL has already been conformed
 
-    let path = path.canonicalize()?;
+    let path = path.canonicalize().with_path(&path)?;
 
     if path.is_dir() {
         let mut path = path.into_os_string();

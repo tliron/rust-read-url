@@ -4,6 +4,7 @@ use super::{
 };
 
 use {
+    kutil_std::error::*,
     std::sync::*,
     tokio::{fs::*, io},
     tracing::*,
@@ -29,7 +30,7 @@ impl UrlCache {
 
                 info!("downloading to file (asynchronous): {}", path.display());
                 let mut reader = url.open_async()?.await?;
-                let mut file = File::create_new(path.clone()).await?;
+                let mut file = File::create_new(path.clone()).await.with_path(path.clone())?;
                 io::copy(&mut reader, &mut file).await?;
 
                 info!("new file: {}", path.display());

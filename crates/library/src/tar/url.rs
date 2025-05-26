@@ -66,7 +66,7 @@ impl URL for TarUrl {
                 reader = Box::new(GzDecoder::new(reader));
             }
             #[cfg(feature = "zstd")]
-            TarCompression::Zstd => {
+            TarCompression::Zstandard => {
                 use {tracing::info, zstd::stream::*};
                 info!("zstd decompression (blocking)");
                 reader = Box::new(Decoder::new(reader)?);
@@ -141,7 +141,7 @@ impl URL for TarUrl {
                     reader = Box::pin(GzipDecoder::new(BufReader::new(reader)));
                 }
                 #[cfg(feature = "zstd")]
-                TarCompression::Zstd => {
+                TarCompression::Zstandard => {
                     use {async_compression::tokio::bufread::*, tokio::io::*, tracing::info};
                     info!("zstd decompression (asynchronous)");
                     reader = Box::pin(ZstdDecoder::new(BufReader::new(reader)));
