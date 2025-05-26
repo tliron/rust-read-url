@@ -17,14 +17,14 @@ categories = []    # https://crates.io/category_slugs
 keywords = ["url"]
 
 [dependencies]
-anstream = "0.6.18"
-clap = { version = "4.5.38", features = ["derive", "string"] }
+anstream = "0.6.19"
+clap = { version = "4.5.39", features = ["derive", "string"] }
 clap_complete_command = "0.6.1"
-kutil-cli = "=0.0.6"
+kutil-cli = "=0.0.7"
 read-url = { version = "=0.0.4" }
 thiserror = "2.0.12"
 tracing = "0.1.41"
-tokio = { version = "1.45.0", features = ["io-std", "rt-multi-thread"] }
+tokio = { version = "1.45.1", features = ["io-std", "rt-multi-thread"] }
 
 [features]
 default = ["async", "blocking"]

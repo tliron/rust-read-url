@@ -20,16 +20,16 @@ keywords = ["url"]
 # extra features:
 async-compression = { optional = true, version = "0.4.23", features = [
     "tokio",
-    "gzip",  # = flate2
 ] }
-flate2 = { optional = true, version = "1.1.1" }
+flate2 = { optional = true, version = "1.1.2" }
 futures = { optional = true, version = "0.3.31" }
 gix = { optional = true, version = "0.72.1", features = [
     "blocking-http-transport-reqwest",
 ] }
 # most up-to-date tokio-compatible fork of async-tar; see: https://github.com/astral-sh/uv/pull/7271
 krata-tokio-tar = { optional = true, version = "0.4.2" }
-kutil-io = { version = "=0.0.3", default-features = false }
+kutil-io = { version = "=0.0.4", default-features = false }
+kutil-std = { version = "=0.0.5", features = ["derive"] }
 positioned-io = { optional = true, version = "0.3.4" }
 rand = "0.9.1"
 relative-path = { version = "2.0.1", features = ["alloc"] }
@@ -37,51 +37,61 @@ relative-path = { version = "2.0.1", features = ["alloc"] }
 rc-zip-sync = { optional = true, version = "4.3.0" }
 rc-zip-tokio = { optional = true, version = "4.2.6" }
 self_cell = "1.2.0"
-reqwest = { optional = true, version = "0.12.15", features = ["stream"] }
+reqwest = { optional = true, version = "0.12.19", features = ["stream"] }
 thiserror = "2.0.12"
 tar = { optional = true, version = "0.4.44" }
-tokio = { optional = true, version = "1.45.0", features = ["rt"] }
+tokio = { optional = true, version = "1.45.1", features = ["rt"] }
 tracing = "0.1.41"
 url = "2.5.4"
 zstd = { optional = true, version = "0.13.3" }
 
 [dev-dependencies]
-anstream = "0.6.18"
+anstream = "0.6.19"
 futures = "0.3.31"
-kutil-cli = "=0.0.6"
-tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
+kutil-cli = "=0.0.7"
+tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.15", features = ["compat"] }
 
 [features]
 default = ["file", "git", "gzip", "http", "internal", "tar", "zip", "zstd"]
+## Enable async implementations.
 async = ["dep:tokio", "kutil-io/async"]
+## Enable blocking implementations.
 blocking = ["kutil-io/blocking"]
+## Enable `file:` URLs.
 file = []
+## Enable `git:` URLs.
 git = ["gix"]
+## Enable GZip for `tar:` URLs.
 gzip = [
-    "dep:async-compression", # for async
-    "dep:flate2",            # for blocking
+    "async-compression/gzip", # for async (=flate2)
+    "dep:async-compression",  # for async
+    "dep:flate2",             # for blocking
 ]
+## Enable `http:` URLs.
 http = [
     "dep:futures", # for blocking
     "dep:reqwest",
     "dep:tokio",   # for blocking
 ]
+## Enable `internal:` URLs.
 internal = []
+## Enable `tar:` URLs.
 tar = [
     "dep:krata-tokio-tar", # for async
     "dep:tar",             # for blocking
 ]
+## Enable `zip:` URLs.
 zip = [
     "dep:rc-zip-tokio",  # for async
     "dep:positioned-io", # for async
     "dep:rc-zip-sync",   # for blocking
 ]
-# this is for both tar and for zip
+## Enable Zstandard for `tar:` and `zip:` URLs.
 zstd = [
-    "async-compression/zstd", # uses zstd, not ruzstd
-    "rc-zip-sync/zstd",       # uses zstd, not ruzstd; see: https://github.com/bearcove/rc-zip/issues/94
-    "rc-zip-tokio/zstd",      # uses zstd, not ruzstd
+    "async-compression/zstd", # for async (uses zstd, not ruzstd)
+    "rc-zip-tokio/zstd",      # for async (uses zstd, not ruzstd)
+    "rc-zip-sync/zstd",       # for blocking (uses zstd, not ruzstd); see: https://github.com/bearcove/rc-zip/issues/94
     "dep:zstd",               # for blocking
 ]
 

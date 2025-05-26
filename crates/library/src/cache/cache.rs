@@ -76,11 +76,7 @@ impl UrlCache {
         }
         directories.clear();
 
-        if errors.is_empty() {
-            Ok(())
-        } else {
-            Err(UrlError::IoMany(errors))
-        }
+        if errors.is_empty() { Ok(()) } else { Err(UrlError::IoMany(errors)) }
     }
 
     /// Get a cache file.
@@ -134,7 +130,7 @@ impl UrlCache {
         create_dir_all(&self.base_directory)?;
 
         // We'll avoid case distinction because Windows doesn't
-        let distribution = Uniform::new_inclusive('a', 'z').unwrap();
+        let distribution = Uniform::new_inclusive('a', 'z').expect("Uniform");
         let path: String = rng().sample_iter(distribution).take(RANDOM_NAME_LENGTH).collect();
         let path = prefix.to_string() + &path;
         Ok(self.base_directory.join(path))

@@ -26,7 +26,7 @@ impl UrlContext {
         slashable: bool,
         base_path: Option<String>,
         format: Option<String>,
-        content: Vec<u8>,
+        content: &[u8],
     ) -> Result<(), UrlError> {
         let mut url_registry = self.internal_url_registry.lock()?;
         url_registry.insert(path, RegisteredInternalUrl::new(slashable, base_path, format, content));
@@ -41,7 +41,7 @@ impl UrlContext {
     }
 
     /// Update the content of an [InternalUrl].
-    pub fn update_internal_url(self: &UrlContextRef, path: &String, content: Vec<u8>) -> Result<bool, UrlError> {
+    pub fn update_internal_url(self: &UrlContextRef, path: &String, content: &[u8]) -> Result<bool, UrlError> {
         let mut url_registry = self.internal_url_registry.lock()?;
         Ok(match url_registry.get_mut(path) {
             Some(registered_internal_url) => {
@@ -59,7 +59,7 @@ impl UrlContext {
         slashable: bool,
         base_path: Option<String>,
         format: Option<String>,
-        content: Vec<u8>,
+        content: &[u8],
     ) -> Result<(), UrlError> {
         let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
         url_registry.insert(path, RegisteredInternalUrl::new(slashable, base_path, format, content));
@@ -74,7 +74,7 @@ impl UrlContext {
     }
 
     /// Update the content of a global [InternalUrl].
-    pub fn update_global_internal_url(path: &String, content: Vec<u8>) -> Result<bool, UrlError> {
+    pub fn update_global_internal_url(path: &String, content: &[u8]) -> Result<bool, UrlError> {
         let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
         Ok(match url_registry.get_mut(path) {
             Some(registered_internal_url) => {
