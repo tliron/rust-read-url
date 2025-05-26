@@ -120,7 +120,7 @@ impl GitUrl {
 
                 if commit.is_none() {
                     // Without a specific commit we can get away with a shallow clone
-                    let one = NonZeroU32::new(1).unwrap();
+                    let one = NonZeroU32::new(1).expect("NonZeroU32");
                     prepare_fetch = prepare_fetch
                         .with_shallow(remote::fetch::Shallow::DepthAtRemote(one))
                         .with_ref_name(ref_name.as_ref()) // branch or tag (option)

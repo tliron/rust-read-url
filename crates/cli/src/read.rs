@@ -37,7 +37,7 @@ impl CLI {
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
-        let url = self.input_url_or_path.as_ref().unwrap();
+        let url = self.input_url_or_path.as_ref().expect("some");
         let url = context.url_or_file_path(url)?;
 
         info!("reading from URL (blocking): {}", url);
@@ -73,7 +73,7 @@ impl CLI {
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
-        let url = self.input_url_or_path.as_ref().unwrap();
+        let url = self.input_url_or_path.as_ref().expect("some");
         let url = context.url_or_file_path_async(url).await?;
 
         info!("reading from URL (asynchronous): {}", url);

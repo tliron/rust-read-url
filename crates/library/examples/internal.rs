@@ -7,10 +7,10 @@ pub fn main() -> Result<(), UrlError> {
 
     UrlContext::register_global_internal_url(
         "/my/content".into(),
-        true,                                   // "slashable"
-        None,                                   // base URL (when "slashable" is false)
-        Some("text".into()),                    // format
-        "global hello world".as_bytes().into(), // content
+        true,                            // "slashable"
+        None,                            // base URL (when "slashable" is false)
+        Some("text".into()),             // format
+        "global hello world".as_bytes(), // content
     )?;
 
     let context = UrlContext::new();
@@ -26,7 +26,7 @@ pub fn main() -> Result<(), UrlError> {
         true,
         None,
         Some("text".into()),
-        "context hello world".as_bytes().into(),
+        "context hello world".as_bytes(),
     )?;
 
     utils::heading("internal (context)");

@@ -1,6 +1,7 @@
 use super::super::errors::*;
 
 use {
+    kutil_std::error::*,
     rand::{distr::*, *},
     std::{collections::*, env::*, fs::*, path::*, sync::*},
     tracing::info,
@@ -60,8 +61,9 @@ impl UrlCache {
         for path in files.values() {
             let path = path.lock()?;
             info!("deleting file: {}", path.display());
-            if let Err(error) = remove_file(path.as_path()) {
-                errors.push(error);
+            let path = path.as_path();
+            if let Err(error) = remove_file(path) {
+                errors.push(error.with_path(path));
             }
         }
         files.clear();
@@ -70,17 +72,14 @@ impl UrlCache {
         for path in directories.values() {
             let path = path.lock()?;
             info!("deleting directory: {}", path.display());
-            if let Err(error) = remove_dir_all(path.as_path()) {
-                errors.push(error);
+            let path = path.as_path();
+            if let Err(error) = remove_dir_all(path) {
+                errors.push(error.with_path(path));
             }
         }
         directories.clear();
 
-        if errors.is_empty() {
-            Ok(())
-        } else {
-            Err(UrlError::IoMany(errors))
-        }
+        if errors.is_empty() { Ok(()) } else { Err(UrlError::IoMany(errors)) }
     }
 
     /// Get a cache file.
@@ -131,10 +130,10 @@ impl UrlCache {
     }
 
     pub(crate) fn new_path(&self, prefix: &str) -> Result<PathBuf, UrlError> {
-        create_dir_all(&self.base_directory)?;
+        create_dir_all(&self.base_directory).with_path(&self.base_directory)?;
 
         // We'll avoid case distinction because Windows doesn't
-        let distribution = Uniform::new_inclusive('a', 'z').unwrap();
+        let distribution = Uniform::new_inclusive('a', 'z').expect("Uniform");
         let path: String = rng().sample_iter(distribution).take(RANDOM_NAME_LENGTH).collect();
         let path = prefix.to_string() + &path;
         Ok(self.base_directory.join(path))

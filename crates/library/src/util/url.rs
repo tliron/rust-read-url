@@ -31,11 +31,11 @@ where
 
 /// URL query string.
 pub fn url_query_string(query: &Option<UrlQuery>) -> String {
-    if let Some(query) = query {
-        if !query.is_empty() {
-            let pairs: Vec<String> = query.into_iter().map(|(key, value)| key.to_owned() + "=" + value).collect();
-            return "?".to_string() + &pairs.join("&");
-        }
+    if let Some(query) = query
+        && !query.is_empty()
+    {
+        let pairs: Vec<String> = query.into_iter().map(|(key, value)| key.to_owned() + "=" + value).collect();
+        return "?".to_string() + &pairs.join("&");
     }
 
     String::new()
