@@ -76,11 +76,7 @@ impl UrlCache {
         }
         directories.clear();
 
-        if errors.is_empty() {
-            Ok(())
-        } else {
-            Err(UrlError::IoMany(errors))
-        }
+        if errors.is_empty() { Ok(()) } else { Err(UrlError::IoMany(errors)) }
     }
 
     /// Get a cache file.

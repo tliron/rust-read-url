@@ -1,13 +1,13 @@
 use super::super::errors::*;
 
-use std::fmt;
+use std::{fmt, str::*};
 
 //
 // TarCompression
 //
 
 /// Tar compression.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum TarCompression {
     /// No compression.
     None,
@@ -19,14 +19,14 @@ pub enum TarCompression {
     Zstd,
 }
 
-impl TryFrom<&str> for TarCompression {
-    type Error = UrlError;
+impl FromStr for TarCompression {
+    type Err = UrlError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
+    fn from_str(representation: &str) -> Result<Self, Self::Err> {
+        match representation {
             "gzip" => Ok(Self::GZip),
             "zstd" => Ok(Self::Zstd),
-            _ => Err(UrlError::UnsupportedFormat(value.into())),
+            _ => Err(UrlError::UnsupportedFormat(representation.into())),
         }
     }
 }
