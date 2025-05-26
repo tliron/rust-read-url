@@ -13,7 +13,7 @@ pub type UrlContextRef = Arc<UrlContext>;
 #[derive(Clone, Debug)]
 pub struct UrlContext {
     /// Base URLs.
-    pub base_urls: Arc<Vec<Arc<UrlRef>>>,
+    pub base_urls: Arc<[Arc<UrlRef>]>,
 
     /// URL overrides.
     pub url_overrides: Arc<Mutex<HashMap<String, String>>>,
@@ -42,7 +42,7 @@ impl UrlContext {
     /// Constructor.
     pub fn new_for(cache_base_directory: Option<PathBuf>) -> UrlContextRef {
         UrlContext {
-            base_urls: Arc::new(Vec::new()),
+            base_urls: Arc::from([]),
             url_overrides: Arc::new(HashMap::new().into()),
             cache: Arc::new(UrlCache::new(cache_base_directory)),
             internal_url_registry: Arc::new(HashMap::new().into()),
@@ -60,8 +60,10 @@ impl UrlContext {
     where
         UrlRefT: Into<Arc<UrlRef>>,
     {
+        let base_urls: Vec<_> = base_urls.into_iter().map(|url| url.into()).collect();
+
         UrlContext {
-            base_urls: Arc::new(base_urls.into_iter().map(|url| url.into()).collect()),
+            base_urls: Arc::from(base_urls),
             url_overrides: self.url_overrides.clone(),
             cache: self.cache.clone(),
             internal_url_registry: self.internal_url_registry.clone(),

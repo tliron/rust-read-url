@@ -59,7 +59,7 @@ impl MockUrl {
         query: Option<UrlQuery>,
         fragment: Option<String>,
         format: Option<String>,
-        content: Option<Vec<u8>>,
+        content: Option<&[u8]>,
     ) -> Self {
         Self {
             url_representation,

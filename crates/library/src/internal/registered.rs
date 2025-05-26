@@ -20,7 +20,7 @@ pub type InternalUrlRegistry = Mutex<RegisteredInternalUrls>;
 pub type RegisteredInternalUrls = HashMap<String, RegisteredInternalUrl>;
 
 /// Registered [InternalUrl](super::internal_url::InternalUrl).
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RegisteredInternalUrl {
     /// Metadata.
     pub metadata: InternalUrlMetadata,
@@ -31,7 +31,7 @@ pub struct RegisteredInternalUrl {
 
 impl RegisteredInternalUrl {
     /// Constructor
-    pub fn new(slashable: bool, base_path: Option<String>, format: Option<String>, content: Vec<u8>) -> Self {
+    pub fn new(slashable: bool, base_path: Option<String>, format: Option<String>, content: &[u8]) -> Self {
         Self { metadata: InternalUrlMetadata::new(slashable, base_path, format), content: ReadableBuffer::new(content) }
     }
 }
