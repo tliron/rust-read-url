@@ -1,0 +1,19 @@
+#python3 -m http.server -d "$1" 8000 &
+cargo install miniserve
+miniserve --port 8000 "$1" &
+HTTP_SERVER_PID=$!
+
+sleep 2
+
+if ! kill -0 "$HTTP_SERVER_PID" 2> /dev/null; then
+	m 'web server not started' "$RED"
+	exit 1
+fi
+
+function the_end () {
+	local ERR=$?
+	kill "$HTTP_SERVER_PID"
+	exit $ERR
+}
+
+trap the_end EXIT

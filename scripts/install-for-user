@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+if [ -z "$XDG_DATA_HOME" ]; then
+    XDG_DATA_HOME=$HOME/.local/share
+fi
+
+if [ -z "$BASH_COMPLETION_USER_DIR" ]; then
+    BASH_COMPLETION_USER_DIR=$XDG_DATA_HOME/bash-completion
+fi
+
+COMPLETIONS=$BASH_COMPLETION_USER_DIR/completions
+MAN1=$XDG_DATA_HOME/man/man1
+
+mkdir --parents "$COMPLETIONS" "$MAN1"
+
+function generate () {
+    local NAME=$1
+
+    m "generating $COMPLETIONS/$NAME"
+    "$NAME" completion bash > "$COMPLETIONS/$NAME"
+
+    m "generating $MAN1/$NAME.*"
+    "$NAME" manual "$MAN1"
+}
+
+generate read-url
+
+if [ "$1" == -r ]; then
+    reset
+fi

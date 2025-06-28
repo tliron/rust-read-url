@@ -3,9 +3,11 @@ set -e
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/_env"
+. "$HERE/_start-http-server" "$ROOT/assets"
 
 cd "$ROOT"
 
 for E in $(cargo run --example 2>&1 | grep --extended-regexp '^    ' | sort); do
-	cargo run --example "$E" --features=blocking,async
+    m "\nexample: $E\n" "$RED"
+	cargo +nightly run --quiet --example "$E" --features=blocking,async
 done

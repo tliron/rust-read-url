@@ -1,0 +1,36 @@
+[package]
+edition = "2024"
+
+name = "read-url-cli"
+description = "Read from a wide variety of URL types"
+version = "0.0.6"
+rust-version = "1.89"
+
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/tliron/rust-read-url"
+documentation = "https://docs.rs/read-url"
+authors = ["Tal Liron"]
+
+readme = "../../README.md"
+
+categories = []    # https://crates.io/category_slugs
+keywords = ["url"]
+
+[dependencies]
+anstream = "0.6.20"
+clap = { version = "4.5.44", features = ["derive", "string"] }
+clap_complete_command = "0.6.1"
+kutil-cli = { version = "=0.0.9", features = ["clap"] }
+read-url = { version = "=0.0.6" }
+thiserror = "2.0.14"
+tracing = "0.1.41"
+tokio = { version = "1.47.1", features = ["io-std", "rt-multi-thread"] }
+
+[features]
+default = ["async", "blocking"]
+async = ["read-url/async"]
+blocking = ["read-url/blocking"]
+
+[[bin]]
+name = "read-url"
+path = "src/main.rs"
