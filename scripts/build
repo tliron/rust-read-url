@@ -8,8 +8,8 @@ cd "$ROOT"
 
 if [ "$TARGET" == release ]; then
 	m 'building binaries (release)...' "$CYAN"
-	cargo install --path="$ROOT/crates/cli"
+	cargo install --path="$ROOT/cli"
 else
 	m 'building binaries (dev)...' "$CYAN"
-	cargo install --path="$ROOT/crates/cli" --debug
+	cargo install --path="$ROOT/cli" --debug
 fi

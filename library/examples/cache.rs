@@ -13,11 +13,11 @@ pub fn main() -> Result<(), UrlError> {
 
     // The cache is necessary for two specific use cases:
 
-    utils::heading("remote zip (download)");
+    utils::heading("remote zip (download)", true);
     let url = context.url("zip:http://localhost:8000/archives/archive.zip!two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("remote git (bare clone)");
+    utils::heading("remote git (bare clone)", false);
     let url = context.url("git:https://github.com/tliron/rust-read-url.git!assets/files/two.txt")?;
     utils::dump(&url)?;
 
@@ -27,11 +27,11 @@ pub fn main() -> Result<(), UrlError> {
 
     // Subsequent references to files in the same archive/repository will use the existing cache:
 
-    utils::heading("remote zip (use cache)");
+    utils::heading("remote zip (use cache)", false);
     let url = context.url("zip:http://localhost:8000/archives/archive.zip!three.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("remote git (use cache)");
+    utils::heading("remote git (use cache)", false);
     let url = context.url("git:https://github.com/tliron/rust-read-url.git!assets/files/three.txt")?;
     utils::dump(&url)?;
 
@@ -45,13 +45,13 @@ pub fn main() -> Result<(), UrlError> {
 
     let context = context.with_base_urls(context.working_dir_url_vec()?);
 
-    utils::heading("local zip");
+    utils::heading("local zip", false);
     let url = context.url("zip:assets/archives/archive.zip!two.txt")?;
     utils::dump(&url)?;
 
     // (Note that below we are assuming you are running in a local git clone)
 
-    utils::heading("local git");
+    utils::heading("local git", false);
     let url = context.url("git:!assets/files/two.txt")?;
     utils::dump(&url)?;
 

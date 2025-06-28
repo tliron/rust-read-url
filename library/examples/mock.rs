@@ -7,7 +7,7 @@ pub fn main() -> Result<(), UrlError> {
 
     let context = UrlContext::new();
 
-    utils::heading("mock");
+    utils::heading("mock", true);
     let url = context.mock_url(
         "happy:/go=lucky".into(),
         false,                  // not "slashable"
