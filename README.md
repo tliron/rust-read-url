@@ -17,7 +17,7 @@ let context = UrlContext::new();
 let url = context.url("http://localhost:8000/hello.txt")?;
 // or something like: "tar:http://localhost:8000/text.tar.gz!hello.txt"
 let mut reader = url.open()?; // io::Read
-let mut string = String::new();
+let mut string = String::default();
 reader.read_to_string(&mut string)?;
 println!("{}", string);
 ```

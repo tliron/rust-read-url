@@ -1,13 +1,14 @@
 [workspace]
-members = ["crates/library", "crates/cli"]
 resolver = "3"
+members = ["library", "cli"]
 
 [patch.crates-io]
-kutil-cli = { path = "../rust-kutil/crates/cli" }
-kutil-io = { path = "../rust-kutil/crates/io" }
-kutil-std = { path = "../rust-kutil/crates/std" }
-kutil-std-macros = { path = "../rust-kutil/crates/std-macros" }
-read-url = { path = "crates/library" }
+kutil-cli = { path = "../rust-kutil/cli" }
+kutil-cli-macros = { path = "../rust-kutil/cli-macros" }
+kutil-io = { path = "../rust-kutil/io" }
+kutil-std = { path = "../rust-kutil/std" }
+kutil-std-macros = { path = "../rust-kutil/std-macros" }
+read-url = { path = "library" }
 
 [profile.release]
 strip = "debuginfo"

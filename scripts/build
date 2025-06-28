@@ -8,8 +8,9 @@ cd "$ROOT"
 
 if [ "$TARGET" == release ]; then
 	m 'building binaries (release)...' "$CYAN"
-	cargo install --path="$ROOT/crates/cli"
+	cargo install --path="$ROOT/cli"
 else
-	m 'building binaries (dev)...' "$CYAN"
-	cargo install --path="$ROOT/crates/cli" --debug
+	m 'building binaries (dev nightly)...' "$CYAN"
+	RUSTFLAGS='-Zthreads=8 -C linker=clang -C link-arg=--ld-path=wild' \
+	cargo +nightly install --path="$ROOT/cli" --debug
 fi
