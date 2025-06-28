@@ -47,26 +47,19 @@ pub struct CLI {
     #[arg(long = "colorize", short = 'z', default_value_t = Colorize::True, value_enum)]
     pub colorize: Colorize,
 
-    /// suppress output;
-    /// if you only need the exit code
-    /// (e.g. to validate input)
+    /// suppress console output
     #[arg(long, short = 'q', verbatim_doc_comment)]
     pub quiet: bool,
-
-    /// log to file path;
-    /// defaults to stderr, applying --colorize
-    #[arg(long, long = "log", short = 'l', verbatim_doc_comment)]
-    pub log_path: Option<PathBuf>,
 
     /// add a log verbosity level;
     /// can be used 3 times
     #[arg(long, short, verbatim_doc_comment, action = ArgAction::Count)]
     pub verbose: u8,
 
-    /// timeout in seconds;
-    /// 0 for no timeout
-    #[arg(long, short = 't', verbatim_doc_comment, default_value_t = 0.0)]
-    pub timeout: f64,
+    /// log to file path;
+    /// defaults to stderr
+    #[arg(long, long = "log", short = 'l', verbatim_doc_comment)]
+    pub log_path: Option<PathBuf>,
 
     /// show this help
     #[arg(long, short = 'h', action = ArgAction::Help)]
@@ -83,9 +76,11 @@ pub struct CLI {
 #[command()]
 pub enum SubCommand {
     /// show the version of read-url
-    #[command(action = ArgAction::Version)]
     Version(Version),
 
     /// output the shell auto-completion script
     Completion(Completion),
+
+    /// output the manual pages (in the troff format)
+    Manual(Manual),
 }

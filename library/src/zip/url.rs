@@ -54,7 +54,7 @@ impl URL for ZipUrl {
         };
 
         let archive_path = match self.archive_url.local() {
-            Some(path) => Arc::new(Mutex::new(path)),
+            Some(path) => Mutex::new(path).into(),
 
             None => {
                 let (path, _) = self.context.cache.file_from(&self.archive_url, "zip-")?;
@@ -91,7 +91,7 @@ impl URL for ZipUrl {
 
         async fn open_async(url: ZipUrl) -> Result<AsyncReadRef, UrlError> {
             let archive_path = match url.archive_url.local() {
-                Some(path) => Arc::new(Mutex::new(path)),
+                Some(path) => Mutex::new(path).into(),
 
                 None => {
                     let (path, _) = url.context.cache.file_from_async(&url.archive_url, "zip-").await?;

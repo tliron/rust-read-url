@@ -15,6 +15,7 @@ pub fn run() -> Result<(), MainError> {
         Some(subcommand) => match subcommand {
             SubCommand::Version(version) => version.run::<CLI>(),
             SubCommand::Completion(completion) => completion.run::<CLI>(),
+            SubCommand::Manual(manual) => manual.run::<CLI>()?,
         },
     }
 

@@ -32,36 +32,36 @@ pub fn main() -> Result<(), UrlError> {
     // Look at all these URL types!
     // (Also look at the code in examples/utils/ to see how we access the URLs)
 
-    utils::heading("http");
+    utils::heading("http", true);
     let url = context.url("http://localhost:8000/files/two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("https");
+    utils::heading("https", false);
     let url =
         context.url("https://raw.githubusercontent.com/tliron/rust-read-url/refs/heads/main/assets/files/two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("tar (no compression)");
+    utils::heading("tar (no compression)", false);
     let url = context.url("tar:http://localhost:8000/archives/archive.tar!two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("tar (gzip)");
+    utils::heading("tar (gzip)", false);
     let url = context.url("tar:http://localhost:8000/archives/archive.tar.gz!two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("tar (zstd)");
+    utils::heading("tar (zstd)", false);
     let url = context.url("tar:http://localhost:8000/archives/archive.tar.zst!two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("tar (nested)");
+    utils::heading("tar (nested)", false);
     let url = context.url("tar:tar:http://localhost:8000/archives/nested.tar.gz!archive.tar.gz!two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("zip");
+    utils::heading("zip", false);
     let url = context.url("zip:http://localhost:8000/archives/archive.zip!two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("git");
+    utils::heading("git", false);
     let url = context.url("git:https://github.com/tliron/rust-read-url.git!assets/files/two.txt")?;
     utils::dump(&url)?;
 
@@ -88,11 +88,11 @@ pub fn main() -> Result<(), UrlError> {
     // Now we can provide url() with a relative path instead of a full URL
     // Note that the returned URL will be full (with scheme) and absolute
 
-    utils::heading("relative to working dir");
+    utils::heading("relative to working dir", false);
     let url = context.url("assets/files/two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("relative to http");
+    utils::heading("relative to http", false);
     let url = context.url("tar:assets/archives/archive.tar.gz!two.txt")?;
     utils::dump(&url)?;
 
@@ -104,7 +104,7 @@ pub fn main() -> Result<(), UrlError> {
     // * you should call conform() manually on it before trying to open() it
     //   like so:
 
-    utils::heading("absolute");
+    utils::heading("absolute", false);
     let mut url = context
         .absolute_url("https://raw.githubusercontent.com/tliron/rust-read-url/refs/heads/main/assets/files/two.txt")?;
     url.conform()?;
@@ -113,15 +113,15 @@ pub fn main() -> Result<(), UrlError> {
     // It's common to want to accept *either* a URL *or* a local file path as input
     // That's what the url_or_file_path() API is for:
 
-    utils::heading("url_or_file_path (absolute file)");
+    utils::heading("url_or_file_path (absolute file)", false);
     let url = context.url_or_file_path("/etc/fstab")?;
     utils::about(&url);
 
-    utils::heading("url_or_file_path (absolute url)");
+    utils::heading("url_or_file_path (absolute url)", false);
     let url = context.url_or_file_path("http://localhost:8000/files/two.txt")?;
     utils::dump(&url)?;
 
-    utils::heading("url_or_file_path (relative)");
+    utils::heading("url_or_file_path (relative)", false);
     let url = context.url_or_file_path("assets/files/two.txt")?;
     utils::dump(&url)?;
 
@@ -129,13 +129,13 @@ pub fn main() -> Result<(), UrlError> {
     // (which is operating-system dependent; very different on Windows!)
     // or a more universal (absolute) "file:" URL:
 
-    utils::heading("file");
+    utils::heading("file", false);
     let url = context.url_or_file_path("file:///etc/fstab")?;
     utils::about(&url);
 
     // Finally, let's just show that read-url preserves the URL query and fragment:
 
-    utils::heading("query and fragment");
+    utils::heading("query and fragment", false);
     let url = context.url_or_file_path("file:///etc/fstab?key1=value1&key2=value2#extra-stuff-here")?;
     utils::about(&url);
 

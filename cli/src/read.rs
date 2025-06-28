@@ -33,7 +33,7 @@ impl CLI {
             tracing::*,
         };
 
-        let context = UrlContext::new_for(Some(self.cache.canonicalize()?));
+        let context = UrlContext::new_for(Some(self.cache.clone()));
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
@@ -69,7 +69,7 @@ impl CLI {
             tracing::*,
         };
 
-        let context = UrlContext::new_for(Some(self.cache.canonicalize()?));
+        let context = UrlContext::new_for(Some(self.cache.clone()));
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
