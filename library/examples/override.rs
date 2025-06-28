@@ -11,7 +11,7 @@ pub fn main() -> Result<(), UrlError> {
 
     context.override_url("http://github.com".into(), "internal:///hello".into())?;
 
-    utils::heading("override");
+    utils::heading("override", true);
     let url = context.url("http://github.com")?;
     utils::dump(&url)?;
 

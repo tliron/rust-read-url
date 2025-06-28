@@ -4,7 +4,7 @@ use super::{
     git_url::*,
 };
 
-use {relative_path::*, std::sync::*};
+use relative_path::*;
 
 impl UrlContext {
     /// Construct a [GitUrl].
@@ -17,6 +17,6 @@ impl UrlContext {
         let repository_gix_url = gix::Url::from_bytes(conformed_repository_url.to_string().as_bytes().into())
             .map_err(|error| GitError::from(error))?;
 
-        Ok(GitUrl::new(self, Arc::new(conformed_repository_url), repository_gix_url, path).into())
+        Ok(GitUrl::new(self, conformed_repository_url.into(), repository_gix_url, path).into())
     }
 }

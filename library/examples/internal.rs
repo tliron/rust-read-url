@@ -15,7 +15,7 @@ pub fn main() -> Result<(), UrlError> {
 
     let context = UrlContext::new();
 
-    utils::heading("internal (global)");
+    utils::heading("internal (global)", true);
     let url = context.url("internal:///my/content")?;
     utils::dump(&url)?;
 
@@ -29,7 +29,7 @@ pub fn main() -> Result<(), UrlError> {
         "context hello world".as_bytes(),
     )?;
 
-    utils::heading("internal (context)");
+    utils::heading("internal (context)", false);
     let url = context.url("internal:///my/content")?;
     utils::dump(&url)?;
 
@@ -38,7 +38,7 @@ pub fn main() -> Result<(), UrlError> {
     // (this is the standard URL format)
     // You can use query and fragment, too
 
-    utils::heading("internal (host and query and fragment)");
+    utils::heading("internal (host and query and fragment)", false);
     let url = context.url("internal://host/my/content?key1=value1&key2=value2#extra-stuff-here")?;
     utils::dump(&url)?;
 
@@ -46,7 +46,7 @@ pub fn main() -> Result<(), UrlError> {
 
     let context = context.with_base_urls(vec![context.absolute_url("internal:///my/")?]);
 
-    utils::heading("internal (relative)");
+    utils::heading("internal (relative)", false);
     let url = context.url("content")?;
     utils::dump(&url)?;
 
