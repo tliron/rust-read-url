@@ -18,13 +18,13 @@ keywords = ["url"]
 
 [dependencies]
 anstream = "0.6.19"
-clap = { version = "4.5.40", features = ["derive", "string"] }
+clap = { version = "4.5.41", features = ["derive", "string"] }
 clap_complete_command = "0.6.1"
-kutil-cli = "=0.0.9"
+kutil-cli = { version = "=0.0.9", features = ["clap"] }
 read-url = { version = "=0.0.6" }
 thiserror = "2.0.12"
 tracing = "0.1.41"
-tokio = { version = "1.45.1", features = ["io-std", "rt-multi-thread"] }
+tokio = { version = "1.46.1", features = ["io-std", "rt-multi-thread"] }
 
 [features]
 default = ["async", "blocking"]

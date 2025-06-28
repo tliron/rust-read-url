@@ -42,9 +42,9 @@ impl UrlContext {
     /// Constructor.
     pub fn new_for(cache_base_directory: Option<PathBuf>) -> UrlContextRef {
         UrlContext {
-            base_urls: Arc::from([]),
+            base_urls: [].into(),
             url_overrides: Arc::new(HashMap::new().into()),
-            cache: Arc::new(UrlCache::new(cache_base_directory)),
+            cache: UrlCache::new(cache_base_directory).into(),
             internal_url_registry: Arc::new(HashMap::new().into()),
 
             #[cfg(feature = "http")]
@@ -81,7 +81,7 @@ impl UrlContext {
         UrlContext {
             base_urls: self.base_urls.clone(),
             url_overrides: self.url_overrides.clone(),
-            cache: Arc::new(UrlCache::new(cache_base_directory)),
+            cache: UrlCache::new(cache_base_directory).into(),
             internal_url_registry: self.internal_url_registry.clone(),
 
             #[cfg(feature = "http")]

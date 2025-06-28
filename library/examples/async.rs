@@ -12,33 +12,33 @@ pub async fn main() -> Result<(), UrlError> {
 
     let context = UrlContext::new();
 
-    utils::heading("http");
+    utils::heading("http", true);
     let url = context.url_async("http://localhost:8000/files/two.txt").await?;
     utils::dump_async(&url).await?;
 
-    utils::heading("https");
+    utils::heading("https", false);
     let url = context
         .url_async("https://raw.githubusercontent.com/tliron/rust-read-url/refs/heads/main/assets/files/two.txt")
         .await?;
     utils::dump_async(&url).await?;
 
-    utils::heading("tar (no compression)");
+    utils::heading("tar (no compression)", false);
     let url = context.url_async("tar:http://localhost:8000/archives/archive.tar!two.txt").await?;
     utils::dump_async(&url).await?;
 
-    utils::heading("tar (gzip)");
+    utils::heading("tar (gzip)", false);
     let url = context.url_async("tar:http://localhost:8000/archives/archive.tar.gz!two.txt").await?;
     utils::dump_async(&url).await?;
 
-    utils::heading("tar (zstd)");
+    utils::heading("tar (zstd)", false);
     let url = context.url_async("tar:http://localhost:8000/archives/archive.tar.zst!two.txt").await?;
     utils::dump_async(&url).await?;
 
-    utils::heading("zip");
+    utils::heading("zip", false);
     let url = context.url_async("zip:http://localhost:8000/archives/archive.zip!two.txt").await?;
     utils::dump_async(&url).await?;
 
-    utils::heading("git");
+    utils::heading("git", false);
     let url = context.url_async("git:https://github.com/tliron/rust-read-url.git!assets/files/two.txt").await?;
     utils::dump_async(&url).await?;
 
@@ -46,7 +46,7 @@ pub async fn main() -> Result<(), UrlError> {
     // But that conform_async() works a bit differently from conform(),
     // in that you need to use its returned value
 
-    utils::heading("absolute");
+    utils::heading("absolute", false);
     let mut url = context
         .absolute_url("https://raw.githubusercontent.com/tliron/rust-read-url/refs/heads/main/assets/files/two.txt")?;
     url = url.conform_async()?.await?;

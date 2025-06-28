@@ -8,9 +8,12 @@ use {
     tokio::{io::*, *},
 };
 
-pub fn heading(heading: &str) {
+pub fn heading(heading: &str, first: bool) {
     let theme = Theme::default();
-    println!("\n{}:", theme.heading(heading));
+    if !first {
+        println!();
+    }
+    println!("{}:", theme.heading(heading));
 }
 
 pub fn about(url: &UrlRef) {
