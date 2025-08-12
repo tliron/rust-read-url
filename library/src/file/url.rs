@@ -57,14 +57,14 @@ impl URL for FileUrl {
 
     #[cfg(feature = "blocking")]
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
-        use {kutil_std::error::*, std::fs::*};
+        use {kutil::std::error::*, std::fs::*};
 
         Ok(Box::new(File::open(&self.path).with_path(&self.path)?))
     }
 
     #[cfg(feature = "async")]
     fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
-        use {super::super::errors::*, kutil_std::error::*, tokio::fs::*};
+        use {super::super::errors::*, kutil::std::error::*, tokio::fs::*};
 
         async fn open_async(url: FileUrl) -> Result<AsyncReadRef, UrlError> {
             let file = File::open(&url.path).await.with_path(&url.path)?;

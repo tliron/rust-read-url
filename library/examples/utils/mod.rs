@@ -2,7 +2,7 @@
 
 use {
     anstream::println,
-    kutil_cli::debug::*,
+    kutil::cli::debug::*,
     read_url::*,
     std::result::Result,
     tokio::{io::*, *},

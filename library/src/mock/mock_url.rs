@@ -1,6 +1,6 @@
 use super::super::{context::*, url::*, util::*};
 
-use {kutil_io::reader::*, std::fmt};
+use {kutil::io::reader::*, std::fmt};
 
 //
 // MockUrl

@@ -4,7 +4,7 @@ use super::{
 };
 
 use {
-    kutil_std::error::*,
+    kutil::std::error::*,
     std::{fs::*, io, sync::*},
     tracing::*,
 };

@@ -49,7 +49,7 @@ impl URL for ZipUrl {
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         use {
             super::blocking::*,
-            kutil_std::error::*,
+            kutil::std::error::*,
             std::{fs::*, sync::*},
         };
 
@@ -84,7 +84,7 @@ impl URL for ZipUrl {
     fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
         use {
             super::{super::errors::*, asynchronous::*},
-            kutil_std::error::*,
+            kutil::std::error::*,
             positioned_io::*,
             std::sync::*,
         };

@@ -3,7 +3,7 @@
 use super::super::errors::*;
 
 use {
-    kutil_std::error::*,
+    kutil::std::error::*,
     relative_path::*,
     std::{io, path::*},
 };
