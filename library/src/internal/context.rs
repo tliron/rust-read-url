@@ -5,7 +5,7 @@ use super::{
     registered::*,
 };
 
-use kutil_io::reader::*;
+use kutil::io::reader::*;
 
 impl UrlContext {
     /// Construct an [InternalUrl].

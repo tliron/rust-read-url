@@ -18,7 +18,7 @@ keywords = ["url"]
 
 [dependencies]
 # extra features:
-async-compression = { optional = true, version = "0.4.27", features = [
+async-compression = { optional = true, version = "0.4.30", features = [
     "tokio",
 ] }
 flate2 = { optional = true, version = "1.1.2" }
@@ -28,36 +28,35 @@ gix = { optional = true, version = "0.73.0", features = [
 ] }
 # most up-to-date tokio-compatible fork of async-tar; see: https://github.com/astral-sh/uv/pull/7271
 krata-tokio-tar = { optional = true, version = "0.4.2" }
-kutil-io = { version = "=0.0.5", default-features = false }
-kutil-std = { version = "=0.0.6", features = ["derive"] }
+kutil = { version = "=0.0.1", features = ["io", "std", "derive", "zerocopy"] }
 positioned-io = { optional = true, version = "0.3.4" }
 rand = "0.9.2"
 relative-path = { version = "2.0.1", features = ["alloc"] }
 # extra features for both rc-zip? bzip2, deflate64, lzma, zstd
-rc-zip-sync = { optional = true, version = "4.3.0" }
-rc-zip-tokio = { optional = true, version = "4.2.6" }
+rc-zip-sync = { optional = true, version = "4.3.1" }
+rc-zip-tokio = { optional = true, version = "4.2.7" }
 self_cell = "1.2.0"
-reqwest = { optional = true, version = "0.12.22", features = ["stream"] }
-thiserror = "2.0.14"
+reqwest = { optional = true, version = "0.12.23", features = ["stream"] }
+thiserror = "2.0.16"
 tar = { optional = true, version = "0.4.44" }
 tokio = { optional = true, version = "1.47.1", features = ["rt"] }
 tracing = "0.1.41"
-url = "2.5.4"
+url = "2.5.7"
 zstd = { optional = true, version = "0.13.3" }
 
 [dev-dependencies]
 anstream = "0.6.20"
 futures = "0.3.31"
-kutil-cli = "=0.0.9"
+kutil = { version = "=0.0.1", features = ["cli"] }
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.16", features = ["compat"] }
 
 [features]
 default = ["file", "git", "gzip", "http", "internal", "tar", "zip", "zstd"]
 ## Enable async implementations.
-async = ["dep:tokio", "kutil-io/async"]
+async = ["dep:tokio", "kutil/async"]
 ## Enable blocking implementations.
-blocking = ["kutil-io/blocking"]
+blocking = ["kutil/blocking"]
 ## Enable `file:` URLs.
 file = []
 ## Enable `git:` URLs.

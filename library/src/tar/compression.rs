@@ -1,6 +1,6 @@
 use super::super::errors::*;
 
-use {kutil_std::*, std::str::*};
+use {kutil::std::*, std::str::*};
 
 //
 // TarCompression

@@ -1,6 +1,6 @@
 use super::{cli::*, errors::*};
 
-use {clap::*, kutil_cli::log::*};
+use {clap::*, kutil::cli::log::*};
 
 pub fn run() -> Result<(), MainError> {
     let cli = CLI::parse();

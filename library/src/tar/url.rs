@@ -49,7 +49,7 @@ impl URL for TarUrl {
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
         use {
             super::{super::errors::*, compression::*},
-            kutil_io::reader::*,
+            kutil::io::reader::*,
             std::str,
             tar::*,
         };

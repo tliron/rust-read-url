@@ -3,10 +3,8 @@ resolver = "3"
 members = ["library", "cli"]
 
 [patch.crates-io]
-kutil-cli = { path = "../rust-kutil/cli" }
+kutil = { path = "../rust-kutil/library" }
 kutil-cli-macros = { path = "../rust-kutil/cli-macros" }
-kutil-io = { path = "../rust-kutil/io" }
-kutil-std = { path = "../rust-kutil/std" }
 kutil-std-macros = { path = "../rust-kutil/std-macros" }
 read-url = { path = "library" }
 

@@ -1,7 +1,7 @@
 use super::metadata::*;
 
 use {
-    kutil_io::reader::*,
+    kutil::io::reader::*,
     std::{collections::*, sync::*},
 };
 
