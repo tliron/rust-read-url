@@ -7,10 +7,10 @@ pub fn main() -> Result<(), UrlError> {
 
     UrlContext::register_global_internal_url(
         "/my/content".into(),
-        true,                            // "slashable"
-        None,                            // base URL (when "slashable" is false)
-        Some("text".into()),             // format
-        "global hello world".as_bytes(), // content
+        true,                  // "slashable"
+        None,                  // base URL (when "slashable" is false)
+        Some("text".into()),   // format
+        b"global hello world", // content
     )?;
 
     let context = UrlContext::new();
@@ -21,13 +21,7 @@ pub fn main() -> Result<(), UrlError> {
 
     // The context registry will override the global registry
 
-    context.register_internal_url(
-        "/my/content".into(),
-        true,
-        None,
-        Some("text".into()),
-        "context hello world".as_bytes(),
-    )?;
+    context.register_internal_url("/my/content".into(), true, None, Some("text".into()), b"context hello world")?;
 
     utils::heading("internal (context)", false);
     let url = context.url("internal:///my/content")?;

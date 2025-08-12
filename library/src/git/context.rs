@@ -14,8 +14,8 @@ impl UrlContext {
         path: RelativePathBuf,
     ) -> Result<UrlRef, UrlError> {
         // Note: gix will strip the query and fragment, which is why we are also keeping the original URL
-        let repository_gix_url = gix::Url::from_bytes(conformed_repository_url.to_string().as_bytes().into())
-            .map_err(|error| GitError::from(error))?;
+        let repository_gix_url =
+            gix::Url::from_bytes(conformed_repository_url.to_string().as_bytes().into()).map_err(GitError::from)?;
 
         Ok(GitUrl::new(self, conformed_repository_url.into(), repository_gix_url, path).into())
     }

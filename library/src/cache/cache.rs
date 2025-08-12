@@ -1,7 +1,7 @@
 use super::super::errors::*;
 
 use {
-    kutil_std::error::*,
+    kutil::std::error::*,
     rand::{distr::*, *},
     std::{collections::*, env::*, fs::*, path::*, sync::*},
     tracing::info,
@@ -36,10 +36,7 @@ pub struct UrlCache {
 impl UrlCache {
     /// Constructor.
     pub fn new(base_directory: Option<PathBuf>) -> Self {
-        let base_directory = match base_directory {
-            Some(directory) => directory,
-            None => Self::default_base_directory(),
-        };
+        let base_directory = base_directory.unwrap_or_else(|| Self::default_base_directory());
 
         Self {
             base_directory,

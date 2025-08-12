@@ -102,7 +102,7 @@ impl GitUrl {
             info!("opening local repository: {}", self.repository_gix_url);
 
             let path = self.repository_gix_url.path.to_string();
-            open(path).map_err(|error| GitError::from(error))?
+            open(path).map_err(GitError::from)?
         } else {
             let (directory, existing) = self.context.cache.directory(&self.repository_url.to_string(), "git-")?;
             let directory = directory.lock()?;
@@ -110,12 +110,12 @@ impl GitUrl {
             if existing {
                 info!("opening cached repository: {}", directory.display());
 
-                open(directory.clone()).map_err(|error| GitError::from(error))?
+                open(directory.clone()).map_err(GitError::from)?
             } else {
                 info!("cloning repository to: {}", directory.display());
 
                 let mut prepare_fetch = prepare_clone_bare(self.repository_gix_url.clone(), directory.clone())
-                    .map_err(|error| GitError::from(error))?
+                    .map_err(GitError::from)?
                     .configure_remote(|remote| Ok(remote));
 
                 if commit.is_none() {
@@ -124,12 +124,11 @@ impl GitUrl {
                     prepare_fetch = prepare_fetch
                         .with_shallow(remote::fetch::Shallow::DepthAtRemote(one))
                         .with_ref_name(ref_name.as_ref()) // branch or tag (option)
-                        .map_err(|error| GitError::from(error))?;
+                        .map_err(GitError::from)?;
                 }
 
-                let (repository, _) = prepare_fetch
-                    .fetch_only(progress::Discard, &interrupt::IS_INTERRUPTED)
-                    .map_err(|error| GitError::from(error))?;
+                let (repository, _) =
+                    prepare_fetch.fetch_only(progress::Discard, &interrupt::IS_INTERRUPTED).map_err(GitError::from)?;
 
                 repository
             }
@@ -139,23 +138,23 @@ impl GitUrl {
         let tree = match commit {
             // Use a specific commit
             Some(commit) => {
-                let commit = repository.find_commit(commit).map_err(|error| GitError::from(error))?;
-                commit.tree().map_err(|error| GitError::from(error))?
+                let commit = repository.find_commit(commit).map_err(GitError::from)?;
+                commit.tree().map_err(GitError::from)?
             }
 
             // Use the HEAD (tip of the branch)
-            None => repository.head_tree().map_err(|error| GitError::from(error))?,
+            None => repository.head_tree().map_err(GitError::from)?,
         };
 
         let entry = tree
             .lookup_entry_by_path(self.path.as_str())
-            .map_err(|error| GitError::from(error))?
+            .map_err(GitError::from)?
             .ok_or_else(|| UrlError::new_io_not_found(self))?;
 
         // Note: the entire object's data will be in memory,
         // but at least we can "take" it without cloning
-        let object = entry.object().map_err(|error| GitError::from(error))?;
-        let mut blob = object.try_into_blob().map_err(|error| GitError::from(error))?;
+        let object = entry.object().map_err(GitError::from)?;
+        let mut blob = object.try_into_blob().map_err(GitError::from)?;
         let data = blob.take_data();
 
         Ok(Cursor::new(data))

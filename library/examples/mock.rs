@@ -15,7 +15,7 @@ pub fn main() -> Result<(), UrlError> {
         Some(HashMap::from([("key1".into(), "value1".into()), ("key2".into(), "value2".into())])), // query
         Some("a-fragment".into()), // fragment
         Some("text".into()),    // format
-        Some("hello world".as_bytes()), // content
+        Some(b"hello world"),   // content
     );
     utils::dump(&url)?;
 

@@ -59,7 +59,7 @@ impl URL for HttpUrl {
 
     #[cfg(feature = "blocking")]
     fn open(&self) -> Result<ReadRef, crate::UrlError> {
-        use kutil_io::stream::{bytes::*, *};
+        use kutil::io::stream::{bytes::*, *};
 
         let runtime = runtime()?;
         let response = runtime.block_on(self.context.http_client.get(self.url.clone()).send())?;
@@ -70,7 +70,7 @@ impl URL for HttpUrl {
 
     #[cfg(feature = "async")]
     fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
-        use {super::super::errors::*, kutil_io::stream::bytes::*};
+        use {super::super::errors::*, kutil::io::stream::bytes::*};
 
         async fn open_async(url: HttpUrl) -> Result<AsyncReadRef, UrlError> {
             let response = url.context.http_client.get(url.url.clone()).send().await?;
