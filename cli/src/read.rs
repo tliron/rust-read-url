@@ -13,7 +13,7 @@ impl CLI {
             }
 
             #[cfg(not(feature = "async"))]
-            Err(kutil_cli::run::Exit::new(1, Some("\"async\" feature not enabled during compilation")).into())
+            Err(kutil::cli::run::Exit::new(1, Some("\"async\" feature not enabled during compilation")).into())
         } else {
             #[cfg(feature = "blocking")]
             {
@@ -21,7 +21,7 @@ impl CLI {
             }
 
             #[cfg(not(feature = "blocking"))]
-            Err(kutil_cli::run::Exit::new(1, Some("\"blocking\" feature not enabled during compilation")).into())
+            Err(kutil::cli::run::Exit::new(1, Some("\"blocking\" feature not enabled during compilation")).into())
         }
     }
 
