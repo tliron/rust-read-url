@@ -29,12 +29,12 @@ impl URL for GitUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         self.conform_path()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: GitUrl) -> Result<UrlRef, UrlError> {
@@ -46,12 +46,12 @@ impl URL for GitUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         Ok(Box::new(self.open_cursor()?))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn open_async(url: GitUrl) -> Result<AsyncReadRef, UrlError> {
@@ -64,7 +64,7 @@ impl URL for GitUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl GitUrl {
-    fn open_cursor(&self) -> Result<std::io::Cursor<Vec<u8>>, crate::UrlError> {
+    fn open_cursor(&self) -> Result<std::io::Cursor<Vec<u8>>, super::super::UrlError> {
         use {
             super::{super::errors::*, errors::*},
             gix::*,
@@ -120,7 +120,7 @@ impl GitUrl {
 
                 if commit.is_none() {
                     // Without a specific commit we can get away with a shallow clone
-                    let one = NonZeroU32::new(1).expect("NonZeroU32");
+                    let one = NonZeroU32::new(1).expect("NonZeroU32::new");
                     prepare_fetch = prepare_fetch
                         .with_shallow(remote::fetch::Shallow::DepthAtRemote(one))
                         .with_ref_name(ref_name.as_ref()) // branch or tag (option)
@@ -163,7 +163,7 @@ impl GitUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl GitUrl {
-    fn conform_path(&mut self) -> Result<(), crate::UrlError> {
+    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
         self.path = self.path.normalize();
         Ok(())
     }

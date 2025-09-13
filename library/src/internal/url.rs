@@ -41,12 +41,12 @@ impl URL for InternalUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         self.conform_metadata()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: InternalUrl) -> Result<UrlRef, UrlError> {
@@ -58,7 +58,7 @@ impl URL for InternalUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         use super::super::errors::*;
 
         let reader = self.context.read_internal_url(&self.path)?.ok_or_else(|| UrlError::new_io_not_found(self))?;
@@ -66,7 +66,7 @@ impl URL for InternalUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn open_async(url: InternalUrl) -> Result<AsyncReadRef, UrlError> {
@@ -80,7 +80,7 @@ impl URL for InternalUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl InternalUrl {
-    fn conform_metadata(&mut self) -> Result<(), crate::UrlError> {
+    fn conform_metadata(&mut self) -> Result<(), super::super::UrlError> {
         use super::super::errors::*;
 
         let metadata = self

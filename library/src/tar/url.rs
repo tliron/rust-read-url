@@ -29,12 +29,12 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         self.conform_path()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: TarUrl) -> Result<UrlRef, UrlError> {
@@ -46,7 +46,7 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         use {
             super::{super::errors::*, compression::*},
             kutil::io::reader::*,
@@ -116,7 +116,7 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use {
             super::{super::errors::*, compression::*},
             futures::*,
@@ -175,7 +175,7 @@ impl URL for TarUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl TarUrl {
-    fn conform_path(&mut self) -> Result<(), crate::UrlError> {
+    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
         // (We assume the archive URL has already been conformed)
 
         // Note that tar entries could have relative or absolute paths

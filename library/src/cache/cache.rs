@@ -47,7 +47,7 @@ impl UrlCache {
 
     /// Default base directory.
     pub fn default_base_directory() -> PathBuf {
-        temp_dir().join("get-url")
+        temp_dir().join("read-url")
     }
 
     /// Resets the cache, deleting all owned files and directories.
@@ -130,7 +130,7 @@ impl UrlCache {
         create_dir_all(&self.base_directory).with_path(&self.base_directory)?;
 
         // We'll avoid case distinction because Windows doesn't
-        let distribution = Uniform::new_inclusive('a', 'z').expect("Uniform");
+        let distribution = Uniform::new_inclusive('a', 'z').expect("Uniform::new_inclusive");
         let path: String = rng().sample_iter(distribution).take(RANDOM_NAME_LENGTH).collect();
         let path = prefix.to_string() + &path;
         Ok(self.base_directory.join(path))

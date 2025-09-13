@@ -41,12 +41,12 @@ impl URL for MockUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         Ok(())
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(url: MockUrl) -> Result<UrlRef, UrlError> {
@@ -57,7 +57,7 @@ impl URL for MockUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         use super::super::errors::*;
 
         let content = self.content.as_ref().ok_or_else(|| UrlError::new_io_not_found(self))?;
@@ -65,7 +65,7 @@ impl URL for MockUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn open_async(url: MockUrl) -> Result<AsyncReadRef, UrlError> {

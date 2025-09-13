@@ -29,12 +29,12 @@ impl URL for ZipUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         self.conform_path()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: ZipUrl) -> Result<UrlRef, UrlError> {
@@ -46,7 +46,7 @@ impl URL for ZipUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         use {
             super::blocking::*,
             kutil::std::error::*,
@@ -81,7 +81,7 @@ impl URL for ZipUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use {
             super::{super::errors::*, asynchronous::*},
             kutil::std::error::*,
@@ -123,7 +123,7 @@ impl URL for ZipUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl ZipUrl {
-    fn conform_path(&mut self) -> Result<(), crate::UrlError> {
+    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
         // (We assume the archive URL has already been conformed)
 
         // Note that zip entries could have relative or absolute paths
@@ -135,7 +135,7 @@ impl ZipUrl {
 }
 
 // #[cfg(all(feature = "blocking", not(feature = "zip-rc")))]
-// fn open(&self) -> Result<ReadRef, crate::UrlError> {
+// fn open(&self) -> Result<ReadRef, super::super::UrlError> {
 //     use {
 //         memmap2::*,
 //         piz::read::*,

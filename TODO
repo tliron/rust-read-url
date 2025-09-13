@@ -1,8 +1,11 @@
+Is it a good idea to switch to ureq for blocking http?
+# ureq = { optional = true, version = "3.1.2" }
+
 https://github.com/WebAssembly/wasi-http/
 https://docs.rs/wasmtime-wasi-http/latest/wasmtime_wasi_http/
 
-* override URLs, possibly with sophisticated pattern matching?
+Override URLs, possibly with sophisticated pattern matching?
 
-* can we make tar support reposition reader over HTTP?
+Can we make tar support reposition reader over HTTP?
 https://docs.rs/tar/latest/tar/struct.Archive.html#method.entries_with_seek
 https://github.com/pka/http-range-client

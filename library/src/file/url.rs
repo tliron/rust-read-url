@@ -39,12 +39,12 @@ impl URL for FileUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         self.conform_path()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(mut url: FileUrl) -> Result<UrlRef, UrlError> {
@@ -56,14 +56,14 @@ impl URL for FileUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         use {kutil::std::error::*, std::fs::*};
 
         Ok(Box::new(File::open(&self.path).with_path(&self.path)?))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use {super::super::errors::*, kutil::std::error::*, tokio::fs::*};
 
         async fn open_async(url: FileUrl) -> Result<AsyncReadRef, UrlError> {
@@ -77,7 +77,7 @@ impl URL for FileUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl FileUrl {
-    fn conform_path(&mut self) -> Result<(), crate::UrlError> {
+    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
         use {super::super::errors::*, std::io};
 
         self.path = match conform_file_path(&self.path) {

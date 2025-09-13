@@ -32,7 +32,7 @@ impl URL for HttpUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), crate::UrlError> {
+    fn conform(&mut self) -> Result<(), super::super::UrlError> {
         use super::super::errors::*;
 
         let tokio = runtime()?;
@@ -42,7 +42,7 @@ impl URL for HttpUrl {
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, crate::UrlError> {
+    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
         use super::super::errors::*;
 
         async fn conform_async(url: HttpUrl) -> Result<UrlRef, UrlError> {
@@ -58,7 +58,7 @@ impl URL for HttpUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, crate::UrlError> {
+    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
         use kutil::io::stream::{bytes::*, *};
 
         let runtime = runtime()?;
@@ -69,7 +69,7 @@ impl URL for HttpUrl {
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, crate::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
         use {super::super::errors::*, kutil::io::stream::bytes::*};
 
         async fn open_async(url: HttpUrl) -> Result<AsyncReadRef, UrlError> {
@@ -84,6 +84,6 @@ impl URL for HttpUrl {
 }
 
 #[cfg(feature = "blocking")]
-fn runtime() -> Result<tokio::runtime::Runtime, crate::UrlError> {
+fn runtime() -> Result<tokio::runtime::Runtime, super::super::UrlError> {
     Ok(tokio::runtime::Builder::new_current_thread().enable_all().build()?)
 }

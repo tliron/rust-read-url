@@ -10,26 +10,27 @@ pub fn main() -> Result<(), UrlError> {
     // The default is to use the default branch tip (HEAD):
 
     utils::heading("default", true);
-    let url = context.url("git:https://github.com/tliron/kutil!NOTICE")?;
+    let url = context.url("git:https://github.com/tliron/kutil!LICENSE-MIT")?;
     utils::dump(&url)?;
 
     // You can specify a branch (will use its tip):
 
     utils::heading("main branch", false);
-    let url = context.url("git:https://github.com/tliron/kutil#main!NOTICE")?;
+    let url = context.url("git:https://github.com/tliron/kutil#main!LICENSE-MIT")?;
     utils::dump(&url)?;
 
     // Or a tag:
 
     utils::heading("tag", false);
-    let url = context.url("git:https://github.com/tliron/kutil#v0.3.0!NOTICE")?;
+    let url = context.url("git:https://github.com/tliron/kutil#r1!LICENSE-MIT")?;
     utils::dump(&url)?;
 
     // Or a commit hash:
     // (note that this will need a complete clone instead of a shallow clone)
 
     utils::heading("commit", false);
-    let url = context.url("git:https://github.com/tliron/kutil#3ac4c2c2b0cb18bef8ef9bf47b6fa5baa4722c9e!NOTICE")?;
+    let url =
+        context.url("git:https://github.com/tliron/kutil#499b56af97b3fdbab0bac75c764c46ad623e2937!LICENSE-MIT")?;
     utils::dump(&url)?;
 
     // Note about the cache:
