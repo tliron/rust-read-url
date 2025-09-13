@@ -6,7 +6,7 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 cd "$ROOT"
 
-if [ "$TARGET" == release ]; then
+if [ "$1" == -r ]; then
 	m 'building binaries (release)...' "$CYAN"
 	cargo install --path="$ROOT/cli"
 else

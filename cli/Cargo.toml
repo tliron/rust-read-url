@@ -4,7 +4,7 @@ edition = "2024"
 name = "read-url-cli"
 description = "Read from a wide variety of URL types"
 version = "0.0.6"
-rust-version = "1.89"
+rust-version = "1.90"
 
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tliron/rust-read-url"
