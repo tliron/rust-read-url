@@ -30,17 +30,15 @@ impl CLI {
         use {
             read_url::*,
             std::{fs::*, io},
-            tracing::*,
         };
 
         let context = UrlContext::new_for(Some(self.cache.clone()));
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
-        let url = self.input_url_or_path.as_ref().expect("some");
-        let url = context.url_or_file_path(url)?;
+        let url = context.url_or_file_path(&self.input_url_or_path)?;
 
-        info!("reading from URL (blocking): {}", url);
+        tracing::info!("reading from URL (blocking): {}", url);
 
         let mut reader = url.open()?;
         if self.quiet {
@@ -66,17 +64,15 @@ impl CLI {
         use {
             read_url::*,
             tokio::{fs::*, io},
-            tracing::*,
         };
 
         let context = UrlContext::new_for(Some(self.cache.clone()));
         let base_urls = context.working_dir_url_vec()?;
         let context = context.with_base_urls(base_urls);
 
-        let url = self.input_url_or_path.as_ref().expect("some");
-        let url = context.url_or_file_path_async(url).await?;
+        let url = context.url_or_file_path_async(&self.input_url_or_path).await?;
 
-        info!("reading from URL (asynchronous): {}", url);
+        tracing::info!("reading from URL (asynchronous): {}", url);
 
         let mut reader = url.open_async()?.await?;
         if self.quiet {

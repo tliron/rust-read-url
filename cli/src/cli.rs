@@ -28,7 +28,7 @@ pub struct CLI {
 
     /// can be a URL or a file path
     #[arg(verbatim_doc_comment)]
-    pub input_url_or_path: Option<String>,
+    pub input_url_or_path: String,
 
     /// output file path;
     /// when absent will write to stdout
