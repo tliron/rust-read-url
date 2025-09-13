@@ -4,7 +4,7 @@ edition = "2024"
 name = "read-url"
 description = "Read from a wide variety of URL types"
 version = "0.0.6"
-rust-version = "1.89"
+rust-version = "1.90"
 
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tliron/rust-read-url"
@@ -18,7 +18,7 @@ keywords = ["url"]
 
 [dependencies]
 # extra features:
-async-compression = { optional = true, version = "0.4.30", features = [
+async-compression = { optional = true, version = "0.4.32", features = [
     "tokio",
 ] }
 flate2 = { optional = true, version = "1.1.2" }
@@ -28,7 +28,7 @@ gix = { optional = true, version = "0.73.0", features = [
 ] }
 # most up-to-date tokio-compatible fork of async-tar; see: https://github.com/astral-sh/uv/pull/7271
 krata-tokio-tar = { optional = true, version = "0.4.2" }
-kutil = { version = "=0.0.1", features = ["io", "std", "derive", "zerocopy"] }
+kutil = { version = "=0.0.1", features = ["io", "std", "derive", "immutable"] }
 positioned-io = { optional = true, version = "0.3.4" }
 rand = "0.9.2"
 relative-path = { version = "2.0.1", features = ["alloc"] }
