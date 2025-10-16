@@ -50,3 +50,14 @@ pub fn url_fragment(url: &Url) -> Option<String> {
 pub fn url_fragment_string(fragment: &Option<String>) -> String {
     fragment.as_ref().map_or(Default::default(), |fragment| String::from("#") + fragment)
 }
+
+/// URL without query and fragment.
+pub fn url_without_query_and_fragment(mut url: String) -> String {
+    if let Some((before, _after)) = url.split_once('#') {
+        url = before.to_string();
+    }
+    if let Some((before, _after)) = url.split_once('?') {
+        url = before.to_string();
+    }
+    url
+}

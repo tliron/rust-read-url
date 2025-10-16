@@ -30,7 +30,15 @@ impl URL for TarUrl {
 
     #[cfg(feature = "blocking")]
     fn conform(&mut self) -> Result<(), super::super::UrlError> {
-        self.conform_path()
+        // (We assume the archive URL has already been conformed)
+
+        // Note that tar entries could have relative or absolute paths
+        // (though absolute paths are rare), so we cannot conform to absolute
+        self.path = self.path.normalize();
+
+        self.open()?;
+
+        Ok(())
     }
 
     #[cfg(feature = "async")]
@@ -38,7 +46,14 @@ impl URL for TarUrl {
         use super::super::errors::*;
 
         async fn conform_async(mut url: TarUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
+            // (We assume the archive URL has already been conformed)
+
+            // Note that tar entries could have relative or absolute paths
+            // (though absolute paths are rare), so we cannot conform to absolute
+            url.path = url.path.normalize();
+
+            let _ = url.open_async()?;
+
             Ok(url.into())
         }
 
@@ -50,7 +65,7 @@ impl URL for TarUrl {
         use {
             super::{super::errors::*, compression::*},
             kutil::io::reader::*,
-            std::str,
+            std::{io, str},
             tar::*,
         };
 
@@ -59,19 +74,22 @@ impl URL for TarUrl {
         // Decompression
         match self.get_compression() {
             TarCompression::None => {}
+
             #[cfg(feature = "gzip")]
-            TarCompression::GZip => {
+            TarCompression::Gzip => {
                 use {flate2::read::*, tracing::info};
                 info!("gzip decompression (blocking)");
-                reader = Box::new(GzDecoder::new(reader));
+                reader = Box::new(GzDecoder::new(io::BufReader::new(reader)));
             }
-            #[cfg(feature = "zstd")]
+
+            #[cfg(feature = "zstandard")]
             TarCompression::Zstandard => {
                 use {tracing::info, zstd::stream::*};
                 info!("zstd decompression (blocking)");
-                reader = Box::new(Decoder::new(reader)?);
+                reader = Box::new(Decoder::new(io::BufReader::new(reader))?);
             }
-            #[cfg(not(all(feature = "gzip", feature = "zstd")))]
+
+            #[cfg(not(all(feature = "gzip", feature = "zstandard")))]
             compression => return Err(UrlError::UnsupportedFormat(compression.to_string())),
         }
 
@@ -134,19 +152,22 @@ impl URL for TarUrl {
             // Decompression
             match url.get_compression() {
                 TarCompression::None => {}
+
                 #[cfg(feature = "gzip")]
-                TarCompression::GZip => {
+                TarCompression::Gzip => {
                     use {async_compression::tokio::bufread::*, tokio::io::*, tracing::info};
                     info!("gzip decompression (asynchronous)");
                     reader = Box::pin(GzipDecoder::new(BufReader::new(reader)));
                 }
-                #[cfg(feature = "zstd")]
+
+                #[cfg(feature = "zstandard")]
                 TarCompression::Zstandard => {
                     use {async_compression::tokio::bufread::*, tokio::io::*, tracing::info};
                     info!("zstd decompression (asynchronous)");
                     reader = Box::pin(ZstdDecoder::new(BufReader::new(reader)));
                 }
-                #[cfg(not(all(feature = "gzip", feature = "zstd")))]
+
+                #[cfg(not(all(feature = "gzip", feature = "zstandard")))]
                 compression => return Err(UrlError::UnsupportedFormat(compression.to_string())),
             }
 
@@ -170,18 +191,5 @@ impl URL for TarUrl {
         }
 
         Ok(Box::pin(open_async(self.clone())))
-    }
-}
-
-#[cfg(any(feature = "blocking", feature = "async"))]
-impl TarUrl {
-    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
-        // (We assume the archive URL has already been conformed)
-
-        // Note that tar entries could have relative or absolute paths
-        // (though absolute paths are rare), so we cannot conform to absolute
-        self.path = self.path.normalize();
-
-        Ok(())
     }
 }

@@ -13,8 +13,8 @@ pub enum TarCompression {
     /// No compression.
     None,
 
-    /// GZip compression.
-    GZip,
+    /// Gzip compression.
+    Gzip,
 
     /// Zstandard compression.
     #[strings("zstd")]
@@ -26,7 +26,7 @@ impl FromStr for TarCompression {
 
     fn from_str(representation: &str) -> Result<Self, Self::Err> {
         match representation {
-            "gzip" => Ok(Self::GZip),
+            "gzip" => Ok(Self::Gzip),
             "zstd" => Ok(Self::Zstandard),
             _ => Err(UrlError::UnsupportedFormat(representation.into())),
         }

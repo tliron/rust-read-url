@@ -9,7 +9,7 @@ use {
 // ZipUrl
 //
 
-/// A URL for an entry in a zip archive.
+/// A URL for an entry in a ZIP archive.
 ///
 /// The URL scheme is "zip:", followed by full archive URL, a `!`, and then the entry path
 /// within the archive.
