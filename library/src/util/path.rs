@@ -9,6 +9,8 @@ use {
 };
 
 /// Format from path.
+///
+/// We canonicalize common variations into a single representation.
 pub fn get_format_from_path<PathT>(path: PathT) -> Option<String>
 where
     PathT: Into<RelativePathBuf>,
@@ -28,8 +30,8 @@ where
         return Some("yaml".into());
     } else if path_string.ends_with(".tar.gz") || path_string.ends_with(".tgz") {
         return Some("tar.gz".into());
-    } else if path_string.ends_with(".tar.zstd") || path_string.ends_with(".tar.zst") {
-        return Some("tar.zstd".into());
+    } else if path_string.ends_with(".tar.zst") || path_string.ends_with(".tar.zstd") {
+        return Some("tar.zst".into());
     }
 
     path.extension().map(|extension| extension.into())

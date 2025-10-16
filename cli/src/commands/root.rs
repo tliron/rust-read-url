@@ -5,10 +5,8 @@ use {
     std::path::*,
 };
 
-// https://docs.rs/clap/latest/clap/_derive/index.html
-
 //
-// CLI
+// Root
 //
 
 /// Read URLs
@@ -20,15 +18,16 @@ use {
     disable_help_flag = true,
     disable_help_subcommand = true,
     disable_version_flag = true,
+    arg_required_else_help = true,
     styles = clap_styles())
 ]
-pub struct CLI {
+pub struct Root {
     #[command(subcommand)]
     pub subcommand: Option<SubCommand>,
 
     /// can be a URL or a file path
     #[arg(verbatim_doc_comment)]
-    pub input_url_or_path: String,
+    pub input_url_or_path: Option<String>,
 
     /// output file path;
     /// when absent will write to stdout
@@ -69,8 +68,6 @@ pub struct CLI {
 //
 // SubCommands
 //
-
-// TODO: subcommands don't work with arg
 
 #[derive(Subcommand)]
 #[command()]
