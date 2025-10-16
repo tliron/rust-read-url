@@ -1844,6 +1844,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbrown"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5419bdc4f6a9207fbeba6d11b604d481addf78ecd10c11ad51e76c2f6482748d"
+
+[[package]]
 name = "heapless"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2153,7 +2159,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b0f83760fb341a774ed326568e19f5a863af4a952def8c39f9ab92fd95b88e5"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.5",
+ "hashbrown 0.16.0",
 ]
 
 [[package]]
@@ -2282,9 +2288,7 @@ dependencies = [
 
 [[package]]
 name = "kutil"
-version = "0.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91a742852132e38b30e286f9a987b207da44bd857ae0002cae9b76f13e5b66b3"
+version = "0.0.2"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2311,9 +2315,7 @@ dependencies = [
 
 [[package]]
 name = "kutil-cli-macros"
-version = "0.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b05793d12ce1ba18c047bdd78bf9fc1f084d0680555aea38942655edba5f46e"
+version = "0.0.7"
 dependencies = [
  "deluxe",
  "proc-macro2",
@@ -2323,9 +2325,7 @@ dependencies = [
 
 [[package]]
 name = "kutil-std-macros"
-version = "0.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ed9257241a8e4608f1cb8366a79c1a65bba5f95a08a31c1341d154743a5a045"
+version = "0.0.3"
 dependencies = [
  "deluxe",
  "proc-macro2",
@@ -3072,7 +3072,7 @@ dependencies = [
 
 [[package]]
 name = "read-url"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "anstream",
  "async-compression",
@@ -3099,7 +3099,7 @@ dependencies = [
 
 [[package]]
 name = "read-url-cli"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "anstream",
  "clap",

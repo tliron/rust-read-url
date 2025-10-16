@@ -3,7 +3,7 @@ edition = "2024"
 
 name = "read-url"
 description = "Read from a wide variety of URL types"
-version = "0.0.6"
+version = "0.0.7"
 rust-version = "1.90"
 
 license = "MIT OR Apache-2.0"
@@ -28,7 +28,7 @@ gix = { optional = true, version = "0.73.0", features = [
 ] }
 # most up-to-date tokio-compatible fork of async-tar; see: https://github.com/astral-sh/uv/pull/7271
 krata-tokio-tar = { optional = true, version = "0.4.2" }
-kutil = { version = "=0.0.1", features = ["io", "std", "derive", "immutable"] }
+kutil = { version = "=0.0.2", features = ["io", "std", "derive", "immutable"] }
 positioned-io = { optional = true, version = "0.3.5" }
 rand = "0.9.2"
 relative-path = { version = "2.0.1", features = ["alloc"] }
@@ -47,7 +47,7 @@ zstd = { optional = true, version = "0.13.3" }
 [dev-dependencies]
 anstream = "0.6.21"
 futures = "0.3.31"
-kutil = { version = "=0.0.1", features = ["cli"] }
+kutil = { version = "=0.0.2", features = ["cli"] }
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.16", features = ["compat"] }
 
