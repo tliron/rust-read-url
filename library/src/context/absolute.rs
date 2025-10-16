@@ -65,8 +65,8 @@ impl UrlContext {
 
     /// Parses the argument as either an absolute URL or an absolute file path.
     ///
-    /// Make sure to call [URL::conform] or [URL::conform_async] before calling
-    /// [URL::open] or [URL::open_async].
+    /// Make sure to call `URL::conform` or `URL::conform_async` before calling
+    /// `URL::open` or `URL::open_async`.
     ///
     /// Internally, attempts to parse the URL via
     /// [absolute_url](super::super::UrlContext::absolute_url) and if that fails treats
