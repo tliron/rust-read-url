@@ -4,11 +4,14 @@ use super::super::errors::*;
 
 use {
     kutil::std::error::*,
+    problemo::{common::*, *},
     relative_path::*,
     std::{io, path::*},
 };
 
 /// Format from path.
+///
+/// We canonicalize common variations into a single representation.
 pub fn get_format_from_path<PathT>(path: PathT) -> Option<String>
 where
     PathT: Into<RelativePathBuf>,
@@ -28,8 +31,8 @@ where
         return Some("yaml".into());
     } else if path_string.ends_with(".tar.gz") || path_string.ends_with(".tgz") {
         return Some("tar.gz".into());
-    } else if path_string.ends_with(".tar.zstd") || path_string.ends_with(".tar.zst") {
-        return Some("tar.zstd".into());
+    } else if path_string.ends_with(".tar.zst") || path_string.ends_with(".tar.zstd") {
+        return Some("tar.zst".into());
     }
 
     path.extension().map(|extension| extension.into())
@@ -58,10 +61,15 @@ where
 pub fn parse_archive_entry_url_representation(
     url_representation: &str,
     required_scheme: &str,
-) -> Result<(String, String), UrlError> {
+) -> Result<(String, String), Problem> {
     let prefix = required_scheme.to_string() + ":";
     if !url_representation.starts_with(&prefix) {
-        return Err(UrlError::MalformedUrl(format!("scheme is not \"{}\": {}", required_scheme, url_representation)));
+        return Err(MalformedError::as_problem(format!(
+            "scheme is not \"{}\": {}",
+            required_scheme, url_representation
+        ))
+        .via(UrlError)
+        .with(UrlAttachment::new(url_representation)));
     }
 
     let mut archive_url_representation = None;
@@ -80,7 +88,9 @@ pub fn parse_archive_entry_url_representation(
         return Ok((archive_url_representation.into(), path.into()));
     }
 
-    return Err(UrlError::MalformedUrl(format!("\"{}\" URL does not have a \"!\": {}", prefix, url_representation)));
+    Err(MalformedError::as_problem(format!("\"{}\" URL does not have a \"!\": {}", prefix, url_representation))
+        .via(UrlError)
+        .with(UrlAttachment::new(url_representation)))
 }
 
 /// Conform file path.

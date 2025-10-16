@@ -1,5 +1,5 @@
 [![crates.io](https://img.shields.io/crates/v/read-url?color=%23227700)](https://crates.io/crates/read-url)
-[![docs.rs](https://img.shields.io/badge/docs.rs-latest?color=grey)](https://docs.rs/read-url/latest/read_url/)
+[![docs.rs](https://img.shields.io/badge/docs.rs-latest?color=grey)](https://docs.rs/read-url)
 
 read-url
 ========
@@ -62,23 +62,33 @@ Represents an absolute path to the local filesystem.
 
 The URL representation must begin with two slashes. If a host is present before the path it will be stored but not otherwise used by read-url, so this:
 
-    file://localhost/the/path
+```text
+file://localhost/the/path
+```
 
 is equivalent to this path:
 
-    /the/path
+```text
+/the/path
+```
 
 Because the path must be absolute, it always begins with a slash. The consequence is that `file:` URLs commonly begin with 3 slashes:
 
-    file:///the/path
+```text
+file:///the/path
+```
 
 When compiled for Windows the URL path will be converted to a Windows path. The convention is that backslashes become slashes and a first slash is added to make it absolute. So this URL:
 
-    file:///C:/Windows/win.ini
+```text
+file:///C:/Windows/win.ini
+```
 
 is equivalent to this Windows path:
 
-    C:\Windows\win.ini
+```text
+C:\Windows\win.ini
+```
 
 Note that for security reasons relative file URLs *are not* automatically searched against the current working directory by default. If you do want to support the working directory then call `working_dir_url()` and add it explicitly to your base URLs.
 
@@ -86,55 +96,73 @@ It is often desirable to accept input that is *either* a URL *or* a file path. F
 
 Note that the design of this API may trip over a rare edge case for Windows. If there happens to be a drive that has the same name as a supported URL scheme, e.g. "http", then callers would have to provide a full file URL, otherwise it would be parsed as a URL of that scheme. E.g. imagine you have a Windows drive named "http". Thus instead of this Windows file path:
 
-    http:\Dir\file
+```text
+http:\Dir\file
+```
 
 you *must* use the full `file:` URL:
 
-    file:///http:/Dir/file
+```text
+file:///http:/Dir/file
+```
 
 ### `tar:`
 
 Entries in tarballs, with or without compression. Examples:
 
-    tar:https://mysite.org/cloud.tar.gz!path/to/main.yaml
-    tar:file:///local/path/cloud.tar!path/to/main.yaml
+```text
+tar:https://mysite.org/cloud.tar.gz!path/to/main.yaml
+tar:file:///local/path/cloud.tar!path/to/main.yaml
+```
 
 The archive URL (before the `!`) can be any other read-url URL. Indeed it's technically possible to nest archive URLs inside each other for a tasty tarball sandwich:
 
-    tar:tar:mysite.org/cloud.tar.gz!inner.tar!path/to/main.yaml
+```text
+tar:tar:mysite.org/cloud.tar.gz!inner.tar!path/to/main.yaml
+```
 
 When using `url_or_file_path()` the archive URL can be a local path, so this would work with that API:
 
-    tar:local/relative/path/cloud.tar.gz!path/to/main.yaml
+```text
+tar:local/relative/path/cloud.tar.gz!path/to/main.yaml
+```
 
 Decompression is automatically detected depending on the path suffix. `.tar.gz`, `.tgz`, `.tar.zstd`, and `.tar.zst` are supported. Sure, there are many other algorithms in use, but we decided to include 1) the most common, and 2) the most wanted. You can also specify the decompression algorithm explicitly using the URL fragment:
 
-    tar:/absolute/path/cloud#gzip!path/to/main.yaml
-    tar:relative/path/cloud#zstd!path/to/main.yaml
+```text
+1tar:/absolute/path/cloud#gzip!path/to/main.yaml
+tar:relative/path/cloud#zstd!path/to/main.yaml
+```
 
 Note that file paths (with `url_or_file_path()`) do not have fragments, so if you need this feature just use a `file:` URL instead.
 
-Tarballs are serial containers, naturally optimized for streaming, meaning that unwanted entries are skipped until our entry is found, and then subsequent entries are ignored. This means that when accessing tarballs over the network the tarball does not have to be downloaded in its entirety, unlike with zip (see below).
+Tarballs are serial containers, naturally optimized for streaming, meaning that unwanted entries are skipped until our entry is found, and then subsequent entries are ignored. This means that when accessing tarballs over the network the tarball does not have to be downloaded in its entirety, unlike with ZIP (see below).
 
 ### `zip:`
 
-Entries in zip files. Example:
+Entries in ZIP files. Example:
 
-    zip:http://mysite.org/cloud.zip!path/to/main.yaml
+```text
+zip:http://mysite.org/cloud.zip!path/to/main.yaml
+```
 
-Note that zip files require random file access and thus *must* be fully accessible. Consequently for remote zips the entire archive will be downloaded in order to access a single entry. Read-url will optimize by downloading the archive only once per context. Other URLs referring to the archive will use the existing download.
+Note that ZIP files require random file access and thus *must* be fully accessible. Consequently for remote zips the entire archive will be downloaded in order to access a single entry. Read-url will optimize by downloading the archive only once per context. Other URLs referring to the archive will use the existing download.
 
-If you have a choice of compression technologies and want efficient support for remote access then you should prefer tarballs to zip files.
+If you have a choice of compression technologies and want efficient support for remote access then you should prefer tarballs to ZIP files.
 
 ### `git:`
 
 Files in git repositories. Note that the repository URL is not a read-url URL, but rather must be a URL representation supported by [gitoxide's gix](https://github.com/GitoxideLabs/gitoxide). Example:
 
-    git:https://github.com/tliron/rust-read-url.git!crates/library/Cargo.toml
+```text
+git:https://github.com/tliron/rust-read-url.git!crates/library/Cargo.toml
+```
 
 The default is to fetch the tip (HEAD) of the default branch. However, you can also specify a reference via the URL fragment, either a git tag, a branch name (will fetch the tip), or a commit hash in hex. Example of a branch name:
 
-    git:https://github.com/tliron/rust-read-url.git#main!crates/library/Cargo.toml
+```text
+git:https://github.com/tliron/rust-read-url.git#main!crates/library/Cargo.toml
+```
 
 Because we are only interested in reading one file, not otherwise working with the git repository, read-url will do nothing more than the the bare minimum required, i.e. a bare (not checked out) shallow clone of just the specified reference. Read-url will also optimize by cloning the archive only once per context. Other URLs referring to the repository will use the existing clone.
 
@@ -144,7 +172,7 @@ Internal URL content can be stored either in a context (`register_internal_url()
 
 ### Mock URLs
 
-These are intended to be used for testing. They must be created explicitly via `mock_url()` and are not created by parsing an input URLs. The can thus use any scheme, indeed any notation, with any content.
+These are intended to be used for testing. They must be created explicitly via `mock_url()` and are not created by parsing an input. They can thus use any scheme, indeed any notation, with any content.
 
 License
 -------

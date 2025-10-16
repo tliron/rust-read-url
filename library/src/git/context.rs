@@ -1,10 +1,9 @@
 use super::{
-    super::{context::*, errors::*, url::*},
-    errors::*,
+    super::{context::*, errors::*, url::*, util::*},
     git_url::*,
 };
 
-use relative_path::*;
+use {problemo::*, relative_path::*};
 
 impl UrlContext {
     /// Construct a [GitUrl].
@@ -12,10 +11,10 @@ impl UrlContext {
         self: &UrlContextRef,
         conformed_repository_url: UrlRef,
         path: RelativePathBuf,
-    ) -> Result<UrlRef, UrlError> {
-        // Note: gix will strip the query and fragment, which is why we are also keeping the original URL
-        let repository_gix_url =
-            gix::Url::from_bytes(conformed_repository_url.to_string().as_bytes().into()).map_err(GitError::from)?;
+    ) -> Result<UrlRef, Problem> {
+        // Note: for gix we will strip the query and fragment, which is why we are also keeping the original URL
+        let repository_gix_url = url_without_query_and_fragment(conformed_repository_url.to_string());
+        let repository_gix_url = gix::Url::from_bytes(repository_gix_url.as_bytes().into()).into_url_problem("git")?;
 
         Ok(GitUrl::new(self, conformed_repository_url.into(), repository_gix_url, path).into())
     }

@@ -32,25 +32,26 @@ impl URL for HttpUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), super::super::UrlError> {
+    fn conform(&mut self) -> Result<(), problemo::Problem> {
         use super::super::errors::*;
 
         let tokio = runtime()?;
         // TODO: can we get the MIME type here for format?
-        let response = tokio.block_on(self.context.http_client.head(self.url.clone()).send())?;
-        if response.status().is_success() { Ok(()) } else { Err(UrlError::new_io_not_found(self)) }
+        let response =
+            tokio.block_on(self.context.http_client.head(self.url.clone()).send()).into_url_problem("http")?;
+        if response.status().is_success() { Ok(()) } else { Err(unreachable_url(self, "http")) }
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn conform_async(&self) -> Result<ConformFuture, problemo::Problem> {
+        use {super::super::errors::*, problemo::*};
 
-        async fn conform_async(url: HttpUrl) -> Result<UrlRef, UrlError> {
-            let response = url.context.http_client.head(url.url.clone()).send().await?;
+        async fn conform_async(url: HttpUrl) -> Result<UrlRef, Problem> {
+            let response = url.context.http_client.head(url.url.clone()).send().await.into_url_problem("http")?;
             if response.status().is_success() {
                 Ok(url.into())
             } else {
-                Err(UrlError::new_io_not_found(url.url.as_str()))
+                Err(unreachable_url(url.url.as_str(), "internal"))
             }
         }
 
@@ -58,22 +59,26 @@ impl URL for HttpUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
-        use kutil::io::stream::{bytes::*, *};
+    fn open(&self) -> Result<ReadRef, problemo::Problem> {
+        use {
+            super::super::errors::*,
+            kutil::io::stream::{bytes::*, *},
+        };
 
         let runtime = runtime()?;
-        let response = runtime.block_on(self.context.http_client.get(self.url.clone()).send())?;
+        let response =
+            runtime.block_on(self.context.http_client.get(self.url.clone()).send()).into_url_problem("http")?;
         let stream = response.bytes_stream();
         let reader = BlockingBytesStreamReader::new(BlockingStream::new(stream, runtime));
         Ok(Box::new(reader))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
-        use {super::super::errors::*, kutil::io::stream::bytes::*};
+    fn open_async(&self) -> Result<OpenFuture, problemo::Problem> {
+        use {super::super::errors::*, kutil::io::stream::bytes::*, problemo::*};
 
-        async fn open_async(url: HttpUrl) -> Result<AsyncReadRef, UrlError> {
-            let response = url.context.http_client.get(url.url.clone()).send().await?;
+        async fn open_async(url: HttpUrl) -> Result<AsyncReadRef, Problem> {
+            let response = url.context.http_client.get(url.url.clone()).send().await.into_url_problem("http")?;
             let stream = response.bytes_stream();
             let reader = AsyncBytesStreamReader::new(stream);
             Ok(Box::pin(reader))
@@ -84,6 +89,7 @@ impl URL for HttpUrl {
 }
 
 #[cfg(feature = "blocking")]
-fn runtime() -> Result<tokio::runtime::Runtime, super::super::UrlError> {
-    Ok(tokio::runtime::Builder::new_current_thread().enable_all().build()?)
+fn runtime() -> Result<tokio::runtime::Runtime, problemo::Problem> {
+    use super::super::errors::*;
+    Ok(tokio::runtime::Builder::new_current_thread().enable_all().build().into_url_problem("http")?)
 }

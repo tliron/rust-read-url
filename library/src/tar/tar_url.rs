@@ -1,9 +1,10 @@
 use super::{
-    super::{context::*, errors::*, url::*, util::*},
+    super::{context::*, url::*, util::*},
     compression::*,
 };
 
 use {
+    problemo::*,
     relative_path::*,
     std::{fmt, sync::*},
 };
@@ -18,7 +19,7 @@ use {
 ///
 /// The URL scheme is "tar:", followed by full archive URL, a `!`, and then the entry path
 /// within the archive. The fragment of the archive URL is used to explicitly set the
-/// compression algorithm. If the compression is not explicity set, will attempt to determine
+/// compression algorithm. If the compression is not explicitly set, will attempt to determine
 /// it according to the format of the archive URL.
 #[derive(Clone, Debug)]
 pub struct TarUrl {
@@ -36,12 +37,12 @@ pub struct TarUrl {
 
 impl TarUrl {
     /// Parse.
-    pub fn parse(url_representation: &str) -> Result<(String, String), UrlError> {
+    pub fn parse(url_representation: &str) -> Result<(String, String), Problem> {
         parse_archive_entry_url_representation(url_representation, "tar")
     }
 
     /// Compression from archive URL fragment.
-    pub fn compression_from(archive_url: &UrlRef) -> Result<Option<TarCompression>, UrlError> {
+    pub fn compression_from(archive_url: &UrlRef) -> Result<Option<TarCompression>, Problem> {
         Ok(match archive_url.fragment() {
             Some(fragment) => Some(fragment.parse()?),
             None => None,
@@ -70,8 +71,8 @@ impl TarUrl {
 
             None => match self.archive_url.format() {
                 Some(archive_format) => match archive_format.as_str() {
-                    "tar.gz" => TarCompression::GZip,
-                    "tar.zstd" => TarCompression::Zstandard,
+                    "tar.gz" => TarCompression::Gzip,
+                    "tar.zst" => TarCompression::Zstandard,
                     _ => TarCompression::None,
                 },
 
@@ -82,7 +83,7 @@ impl TarUrl {
 }
 
 impl fmt::Display for TarUrl {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "tar:{}!{}", self.archive_url, self.path)
     }
 }

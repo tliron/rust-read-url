@@ -3,8 +3,8 @@ edition = "2024"
 
 name = "read-url-cli"
 description = "Read from a wide variety of URL types"
-version = "0.0.9"
-rust-version = "1.90"
+version = "0.0.11"
+rust-version = "1.93"
 
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tliron/rust-read-url"
@@ -13,18 +13,18 @@ authors = ["Tal Liron"]
 
 readme = "../README.md"
 
-categories = []    # https://crates.io/category_slugs
+categories = [] # https://crates.io/category_slugs
 keywords = ["url"]
 
 [dependencies]
 anstream = "0.6.21"
-clap = { version = "4.5.49", features = ["derive", "string"] }
+clap = { version = "4.5.54", features = ["derive", "string"] }
 clap_complete_command = "0.6.1"
-kutil = { version = "=0.0.2", features = ["cli", "clap"] }
-read-url = { version = "=0.0.9" }
-thiserror = "2.0.17"
-tracing = "0.1.41"
-tokio = { version = "1.48.0", features = ["io-std", "rt-multi-thread"] }
+kutil = { version = "=0.0.5", features = ["cli", "clap"] }
+problemo = { version = "=0.0.4", features = ["backtrace-external"] }
+read-url = { version = "=0.0.10" }
+tracing = "0.1.44"
+tokio = { version = "1.49.0", features = ["io-std", "rt-multi-thread"] }
 
 [features]
 default = ["async", "blocking"]
@@ -34,3 +34,7 @@ blocking = ["read-url/blocking"]
 [[bin]]
 name = "read-url"
 path = "src/main.rs"
+
+[profile.release]
+strip = "debuginfo"
+lto = true

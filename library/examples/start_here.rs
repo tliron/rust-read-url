@@ -1,6 +1,6 @@
 mod utils;
 
-use read_url::*;
+use {problemo::*, read_url::*};
 
 // Running this example assumes that our working dir is the repository clone's root
 
@@ -15,7 +15,7 @@ use read_url::*;
 //
 // Here we use "blocking"
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // Let's demonstrate the read-url APIs
 
     // You always need a context:

@@ -1,8 +1,8 @@
 mod utils;
 
-use read_url::*;
+use {problemo::*, read_url::*};
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // The default cache location is your operating system's temporary directory
     // (usually "/tmp")
     // But we can set it explicitly

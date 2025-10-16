@@ -1,11 +1,11 @@
 mod utils;
 
-use {read_url::*, tokio::*};
+use {problemo::*, read_url::*, tokio::*};
 
 // To use async make sure to enable the "async" crate feature in your Cargo.toml
 
 #[main]
-pub async fn main() -> Result<(), UrlError> {
+pub async fn main() -> Result<(), Problem> {
     // We'll show some of the same stuff as in examples/start_here.rs,
     // but in async (via tokio)
     // All relevant APIs have _async equivalents

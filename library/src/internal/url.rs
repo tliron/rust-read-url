@@ -41,15 +41,15 @@ impl URL for InternalUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), super::super::UrlError> {
+    fn conform(&mut self) -> Result<(), problemo::Problem> {
         self.conform_metadata()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn conform_async(&self) -> Result<ConformFuture, problemo::Problem> {
+        use problemo::*;
 
-        async fn conform_async(mut url: InternalUrl) -> Result<UrlRef, UrlError> {
+        async fn conform_async(mut url: InternalUrl) -> Result<UrlRef, Problem> {
             url.conform_metadata()?;
             Ok(url.into())
         }
@@ -58,19 +58,19 @@ impl URL for InternalUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
+    fn open(&self) -> Result<ReadRef, problemo::Problem> {
         use super::super::errors::*;
 
-        let reader = self.context.read_internal_url(&self.path)?.ok_or_else(|| UrlError::new_io_not_found(self))?;
+        let reader = self.context.read_internal_url(&self.path)?.ok_or_else(|| unreachable_url(self, "internal"))?;
         Ok(Box::new(reader))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn open_async(&self) -> Result<OpenFuture, problemo::Problem> {
+        use {super::super::errors::*, problemo::*};
 
-        async fn open_async(url: InternalUrl) -> Result<AsyncReadRef, UrlError> {
-            let reader = url.context.read_internal_url(&url.path)?.ok_or_else(|| UrlError::new_io_not_found(url))?;
+        async fn open_async(url: InternalUrl) -> Result<AsyncReadRef, Problem> {
+            let reader = url.context.read_internal_url(&url.path)?.ok_or_else(|| unreachable_url(url, "internal"))?;
             Ok(Box::pin(reader))
         }
 
@@ -80,13 +80,13 @@ impl URL for InternalUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl InternalUrl {
-    fn conform_metadata(&mut self) -> Result<(), super::super::UrlError> {
+    fn conform_metadata(&mut self) -> Result<(), problemo::Problem> {
         use super::super::errors::*;
 
         let metadata = self
             .context
             .internal_url_metadata(&self.path)?
-            .ok_or_else(|| UrlError::new_io_not_found(self.to_string()))?;
+            .ok_or_else(|| unreachable_url(self.to_string(), "internal"))?;
 
         self.metadata = metadata;
         Ok(())

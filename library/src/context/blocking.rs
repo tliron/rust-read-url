@@ -3,6 +3,8 @@ use super::{
     context::*,
 };
 
+use problemo::{common::*, *};
+
 impl UrlContext {
     /// Parses the argument as either an absolute URL or a path relative to
     /// one of the context's base URls. Relative paths support ".." and ".".
@@ -16,7 +18,7 @@ impl UrlContext {
     ///
     /// If you are expecting either a URL or a file path, consider
     /// [url_or_file_path](UrlContext::url_or_file_path).
-    pub fn url(self: &UrlContextRef, url_representation: &str) -> Result<UrlRef, UrlError> {
+    pub fn url(self: &UrlContextRef, url_representation: &str) -> Result<UrlRef, Problem> {
         self.url_or_maybe_file_path(url_representation, false)
     }
 
@@ -37,7 +39,7 @@ impl UrlContext {
     /// "file:///http:/Dir/file". Otherwise it would be parsed as a URL of that scheme.
     /// rather than a file path.
     #[cfg(feature = "file")]
-    pub fn url_or_file_path(self: &UrlContextRef, url_or_file_path_representation: &str) -> Result<UrlRef, UrlError> {
+    pub fn url_or_file_path(self: &UrlContextRef, url_or_file_path_representation: &str) -> Result<UrlRef, Problem> {
         self.url_or_maybe_file_path(url_or_file_path_representation, true)
     }
 
@@ -45,7 +47,7 @@ impl UrlContext {
         self: &UrlContextRef,
         url_or_file_path_representation: &str,
         or_file_path: bool,
-    ) -> Result<UrlRef, UrlError> {
+    ) -> Result<UrlRef, Problem> {
         let url_or_file_path_representation = self.get_url_or_override(url_or_file_path_representation.into())?;
         match url::Url::parse(&url_or_file_path_representation) {
             Ok(url) => match url.scheme() {
@@ -107,7 +109,9 @@ impl UrlContext {
                     Ok(url)
                 }
 
-                scheme => Err(UrlError::UnsupportedScheme(scheme.into())),
+                scheme => {
+                    Err(UnsupportedError::as_problem("URL scheme").with(SchemeAttachment::new(scheme)).via(UrlError))
+                }
             },
 
             // Not a URL
@@ -135,7 +139,7 @@ impl UrlContext {
                     }
                 }
 
-                Err(UrlError::new_io_not_found(url_or_file_path_representation))
+                Err(unreachable_url(url_or_file_path_representation, "file path"))
             }
         }
     }

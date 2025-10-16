@@ -1,6 +1,7 @@
-use super::super::{context::*, errors::*, url::*, util::*};
+use super::super::{context::*, url::*, util::*};
 
 use {
+    problemo::*,
     relative_path::*,
     std::{fmt, sync::*},
 };
@@ -34,7 +35,7 @@ pub struct GitUrl {
 
 impl GitUrl {
     /// Parse.
-    pub fn parse(url_representation: &str) -> Result<(String, String), UrlError> {
+    pub fn parse(url_representation: &str) -> Result<(String, String), Problem> {
         parse_archive_entry_url_representation(url_representation, "git")
     }
 
@@ -55,7 +56,7 @@ impl GitUrl {
 }
 
 impl fmt::Display for GitUrl {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "git:{}!{}", self.repository_url, self.path)
     }
 }

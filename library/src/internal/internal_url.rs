@@ -73,7 +73,7 @@ impl InternalUrl {
 }
 
 impl fmt::Display for InternalUrl {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let host = self.host.clone().unwrap_or_default();
         let query = url_query_string(&self.query);
         let fragment = url_fragment_string(&self.fragment);

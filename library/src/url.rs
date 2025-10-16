@@ -1,9 +1,9 @@
 use super::context::*;
 
-use std::{collections::*, fmt, io, path::*};
-
-#[cfg(any(feature = "blocking", feature = "async"))]
-use super::errors::*;
+use {
+    problemo::*,
+    std::{collections::*, fmt, io, path::*},
+};
 
 #[cfg(feature = "async")]
 use {
@@ -26,11 +26,11 @@ pub type AsyncReadRef = Pin<Box<dyn AsyncRead>>;
 
 /// Common [Future] type for [URL::conform_async].
 #[cfg(feature = "async")]
-pub type ConformFuture = Pin<Box<dyn Future<Output = Result<UrlRef, UrlError>>>>;
+pub type ConformFuture = Pin<Box<dyn Future<Output = Result<UrlRef, Problem>>>>;
 
 /// Common [Future] type for [URL::open_async].
 #[cfg(feature = "async")]
-pub type OpenFuture = Pin<Box<dyn Future<Output = Result<AsyncReadRef, UrlError>>>>;
+pub type OpenFuture = Pin<Box<dyn Future<Output = Result<AsyncReadRef, Problem>>>>;
 
 //
 // URL
@@ -105,14 +105,14 @@ where
     /// e.g. that the file exists or that the network endpoint is responsive. It does
     /// not otherwise guarantee that reading would be successful.
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), UrlError>;
+    fn conform(&mut self) -> Result<(), Problem>;
 
     /// Async version of [URL::conform].
     ///
     /// Am important difference is that instead of mutating the URL it returns the
     /// new conformed version.
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, UrlError>;
+    fn conform_async(&self) -> Result<ConformFuture, Problem>;
 
     /// Opens the URL for reading by providing a `dyn` [Read][io::Read].
     ///
@@ -130,9 +130,9 @@ where
     /// recent version of the resource the URL points to. If that is undesirable,
     /// call [reset](super::cache::UrlCache::reset) on the [UrlContext] cache.
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, UrlError>;
+    fn open(&self) -> Result<ReadRef, Problem>;
 
     /// Async version of [URL::open]. Provides a `dyn` [AsyncRead](tokio::io::AsyncRead).
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, UrlError>;
+    fn open_async(&self) -> Result<OpenFuture, Problem>;
 }

@@ -3,7 +3,7 @@ use super::{
     file_url::*,
 };
 
-use std::path::*;
+use {kutil::std::error::*, std::path::*};
 
 impl URL for FileUrl {
     fn context(&self) -> &UrlContext {
@@ -39,15 +39,15 @@ impl URL for FileUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), super::super::UrlError> {
+    fn conform(&mut self) -> Result<(), problemo::Problem> {
         self.conform_path()
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn conform_async(&self) -> Result<ConformFuture, problemo::Problem> {
+        use problemo::*;
 
-        async fn conform_async(mut url: FileUrl) -> Result<UrlRef, UrlError> {
+        async fn conform_async(mut url: FileUrl) -> Result<UrlRef, Problem> {
             url.conform_path()?;
             Ok(url.into())
         }
@@ -56,18 +56,18 @@ impl URL for FileUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
-        use {kutil::std::error::*, std::fs::*};
+    fn open(&self) -> Result<ReadRef, problemo::Problem> {
+        use std::fs::*;
 
-        Ok(Box::new(File::open(&self.path).with_path(&self.path)?))
+        Ok(Box::new(File::open(&self.path).map_err(|error| self.into_problem(error))?))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
-        use {super::super::errors::*, kutil::std::error::*, tokio::fs::*};
+    fn open_async(&self) -> Result<OpenFuture, problemo::Problem> {
+        use {problemo::*, tokio::fs::*};
 
-        async fn open_async(url: FileUrl) -> Result<AsyncReadRef, UrlError> {
-            let file = File::open(&url.path).await.with_path(&url.path)?;
+        async fn open_async(url: FileUrl) -> Result<AsyncReadRef, Problem> {
+            let file = File::open(&url.path).await.map_err(|error| url.into_problem(error))?;
             Ok(Box::pin(file))
         }
 
@@ -77,18 +77,29 @@ impl URL for FileUrl {
 
 #[cfg(any(feature = "blocking", feature = "async"))]
 impl FileUrl {
-    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
-        use {super::super::errors::*, std::io};
-
+    fn conform_path(&mut self) -> Result<(), problemo::Problem> {
         self.path = match conform_file_path(&self.path) {
             Ok(path) => path,
             Err(error) => {
-                if error.kind() == io::ErrorKind::NotFound {
-                    return Err(UrlError::new_io_not_found(self));
-                }
-                return Err(error.into());
+                return Err(self.into_problem(error));
             }
         };
         Ok(())
+    }
+
+    fn into_problem(&self, error: std::io::Error) -> problemo::Problem {
+        use {
+            super::super::errors::*,
+            problemo::{common::*, *},
+            std::io,
+        };
+
+        let error = error.with_path(&self.path);
+        match error.kind() {
+            io::ErrorKind::NotFound => error.into_problem().via(LowLevelError).via(UnreachableError::new("URL")),
+            _ => error.into_problem().via(LowLevelError),
+        }
+        .via(UrlError)
+        .with(SchemeAttachment::new("file"))
     }
 }
