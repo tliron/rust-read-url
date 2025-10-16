@@ -6,8 +6,8 @@ use super::{
 impl UrlContext {
     /// Parses the argument as an absolute URL.
     ///
-    /// Make sure to call [URL::conform] or [URL::conform_async] before calling
-    /// [URL::open] or [URL::open_async].
+    /// Make sure to call `URL::conform` or `URL::conform_async` before calling
+    /// `URL::open` or `URL::open_async`.
     ///
     /// To support relative URLs, see [url](UrlContext::url).
     ///

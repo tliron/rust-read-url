@@ -3,7 +3,7 @@ edition = "2024"
 
 name = "read-url"
 description = "Read from a wide variety of URL types"
-version = "0.0.7"
+version = "0.0.8"
 rust-version = "1.90"
 
 license = "MIT OR Apache-2.0"
