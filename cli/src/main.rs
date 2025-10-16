@@ -11,9 +11,8 @@ For more information and usage examples see the
 [home page](https://github.com/tliron/rust-read-url).
 */
 
-mod cli;
+mod commands;
 mod errors;
-mod read;
 mod run;
 
 use run::*;

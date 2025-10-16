@@ -114,9 +114,8 @@ impl GitUrl {
             } else {
                 info!("cloning repository to: {}", directory.display());
 
-                let mut prepare_fetch = prepare_clone_bare(self.repository_gix_url.clone(), directory.clone())
-                    .map_err(GitError::from)?
-                    .configure_remote(|remote| Ok(remote));
+                let mut prepare_fetch =
+                    prepare_clone_bare(self.repository_gix_url.clone(), directory.clone()).map_err(GitError::from)?;
 
                 if commit.is_none() {
                     // Without a specific commit we can get away with a shallow clone
@@ -129,7 +128,6 @@ impl GitUrl {
 
                 let (repository, _) =
                     prepare_fetch.fetch_only(progress::Discard, &interrupt::IS_INTERRUPTED).map_err(GitError::from)?;
-
                 repository
             }
         };
