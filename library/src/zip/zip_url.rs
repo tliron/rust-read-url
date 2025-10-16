@@ -1,6 +1,7 @@
-use super::super::{context::*, errors::*, url::*, util::*};
+use super::super::{context::*, url::*, util::*};
 
 use {
+    problemo::*,
     relative_path::*,
     std::{fmt, sync::*},
 };
@@ -9,7 +10,7 @@ use {
 // ZipUrl
 //
 
-/// A URL for an entry in a zip archive.
+/// A URL for an entry in a ZIP archive.
 ///
 /// The URL scheme is "zip:", followed by full archive URL, a `!`, and then the entry path
 /// within the archive.
@@ -36,7 +37,7 @@ impl ZipUrl {
     }
 
     /// Parse.
-    pub fn parse(url_representation: &str) -> Result<(String, String), UrlError> {
+    pub fn parse(url_representation: &str) -> Result<(String, String), Problem> {
         parse_archive_entry_url_representation(url_representation, "zip")
     }
 }

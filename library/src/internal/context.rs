@@ -1,11 +1,11 @@
 use super::{
-    super::{context::*, errors::*, url::*},
+    super::{context::*, url::*},
     internal_url::*,
     metadata::*,
     registered::*,
 };
 
-use kutil::io::reader::*;
+use {kutil::io::reader::*, problemo::*};
 
 impl UrlContext {
     /// Construct an [InternalUrl].
@@ -27,22 +27,22 @@ impl UrlContext {
         base_path: Option<String>,
         format: Option<String>,
         content: &[u8],
-    ) -> Result<(), UrlError> {
-        let mut url_registry = self.internal_url_registry.lock()?;
+    ) -> Result<(), Problem> {
+        let mut url_registry = self.internal_url_registry.lock().into_thread_problem()?;
         url_registry.insert(path, RegisteredInternalUrl::new(slashable, base_path, format, content));
         Ok(())
     }
 
     /// Deregister an [InternalUrl].
-    pub fn deregister_internal_url(self: &UrlContextRef, path: &String) -> Result<(), UrlError> {
-        let mut url_registry = self.internal_url_registry.lock()?;
+    pub fn deregister_internal_url(self: &UrlContextRef, path: &String) -> Result<(), Problem> {
+        let mut url_registry = self.internal_url_registry.lock().into_thread_problem()?;
         url_registry.remove(path);
         Ok(())
     }
 
     /// Update the content of an [InternalUrl].
-    pub fn update_internal_url(self: &UrlContextRef, path: &String, content: &[u8]) -> Result<bool, UrlError> {
-        let mut url_registry = self.internal_url_registry.lock()?;
+    pub fn update_internal_url(self: &UrlContextRef, path: &String, content: &[u8]) -> Result<bool, Problem> {
+        let mut url_registry = self.internal_url_registry.lock().into_thread_problem()?;
         Ok(match url_registry.get_mut(path) {
             Some(registered_internal_url) => {
                 registered_internal_url.content = ReadableBuffer::new(content);
@@ -60,22 +60,22 @@ impl UrlContext {
         base_path: Option<String>,
         format: Option<String>,
         content: &[u8],
-    ) -> Result<(), UrlError> {
-        let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
+    ) -> Result<(), Problem> {
+        let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().into_thread_problem()?;
         url_registry.insert(path, RegisteredInternalUrl::new(slashable, base_path, format, content));
         Ok(())
     }
 
     /// Deregister a global [InternalUrl].
-    pub fn deregister_global_internal_url(path: &String) -> Result<(), UrlError> {
-        let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
+    pub fn deregister_global_internal_url(path: &String) -> Result<(), Problem> {
+        let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().into_thread_problem()?;
         url_registry.remove(path);
         Ok(())
     }
 
     /// Update the content of a global [InternalUrl].
-    pub fn update_global_internal_url(path: &String, content: &[u8]) -> Result<bool, UrlError> {
-        let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
+    pub fn update_global_internal_url(path: &String, content: &[u8]) -> Result<bool, Problem> {
+        let mut url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().into_thread_problem()?;
         Ok(match url_registry.get_mut(path) {
             Some(registered_internal_url) => {
                 registered_internal_url.content = ReadableBuffer::new(content);
@@ -89,30 +89,30 @@ impl UrlContext {
     /// Read an [InternalUrl]'s content.
     ///
     /// Tries the context's registry first, the global registry next.
-    pub fn read_internal_url(self: &UrlContextRef, path: &String) -> Result<Option<ReadableBufferReader>, UrlError> {
+    pub fn read_internal_url(self: &UrlContextRef, path: &String) -> Result<Option<ReadableBufferReader>, Problem> {
         // Try context registry first
-        let url_registry = self.internal_url_registry.lock()?;
+        let url_registry = self.internal_url_registry.lock().into_thread_problem()?;
         if let Some(registered_internal_url) = url_registry.get(path) {
             return Ok(Some(registered_internal_url.content.reader()));
         }
 
         // Then the global registry
-        let url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
+        let url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().into_thread_problem()?;
         Ok(url_registry.get(path).map(|url| url.content.reader()))
     }
 
     /// Access an [InternalUrl]'s metadata.
     ///
     /// Tries the context's registry first, the global registry next.
-    pub fn internal_url_metadata(self: &UrlContextRef, path: &String) -> Result<Option<InternalUrlMetadata>, UrlError> {
+    pub fn internal_url_metadata(self: &UrlContextRef, path: &String) -> Result<Option<InternalUrlMetadata>, Problem> {
         // Try context registry first
-        let url_registry = self.internal_url_registry.lock()?;
+        let url_registry = self.internal_url_registry.lock().into_thread_problem()?;
         if let Some(registered_internal_url) = url_registry.get(path) {
             return Ok(Some(registered_internal_url.metadata.clone()));
         }
 
         // Then the global registry
-        let url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock()?;
+        let url_registry = GLOBAL_INTERNAL_URL_REGISTRY.lock().into_thread_problem()?;
         Ok(url_registry.get(path).map(|url| url.metadata.clone()))
     }
 }

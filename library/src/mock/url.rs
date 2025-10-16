@@ -41,15 +41,15 @@ impl URL for MockUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), super::super::UrlError> {
+    fn conform(&mut self) -> Result<(), problemo::Problem> {
         Ok(())
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn conform_async(&self) -> Result<ConformFuture, problemo::Problem> {
+        use problemo::*;
 
-        async fn conform_async(url: MockUrl) -> Result<UrlRef, UrlError> {
+        async fn conform_async(url: MockUrl) -> Result<UrlRef, Problem> {
             Ok(url.into())
         }
 
@@ -57,21 +57,21 @@ impl URL for MockUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
+    fn open(&self) -> Result<ReadRef, problemo::Problem> {
         use super::super::errors::*;
 
-        let content = self.content.as_ref().ok_or_else(|| UrlError::new_io_not_found(self))?;
+        let content = self.content.as_ref().ok_or_else(|| unreachable_url(self, "mock"))?;
         Ok(Box::new(content.reader()))
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn open_async(&self) -> Result<OpenFuture, problemo::Problem> {
+        use {super::super::errors::*, problemo::*};
 
-        async fn open_async(url: MockUrl) -> Result<AsyncReadRef, UrlError> {
+        async fn open_async(url: MockUrl) -> Result<AsyncReadRef, Problem> {
             match url.content {
                 Some(content) => Ok(Box::pin(content.reader())),
-                None => Err(UrlError::new_io_not_found(url)),
+                None => Err(unreachable_url(url, "mock")),
             }
         }
 

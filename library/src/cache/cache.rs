@@ -1,7 +1,6 @@
-use super::super::errors::*;
-
 use {
     kutil::std::error::*,
+    problemo::{common::*, *},
     rand::{distr::*, *},
     std::{collections::*, env::*, fs::*, path::*, sync::*},
     tracing::info,
@@ -51,44 +50,44 @@ impl UrlCache {
     }
 
     /// Resets the cache, deleting all owned files and directories.
-    pub fn reset(&self) -> Result<(), UrlError> {
-        let mut errors = Vec::default();
+    pub fn reset(&self) -> Result<(), Problem> {
+        let mut problems = Problems::default();
 
-        let mut files = self.files.lock()?;
+        let mut files = self.files.lock().into_thread_problem()?;
         for path in files.values() {
-            let path = path.lock()?;
+            let path = path.lock().into_thread_problem()?;
             info!("deleting file: {}", path.display());
             let path = path.as_path();
             if let Err(error) = remove_file(path) {
-                errors.push(error.with_path(path));
+                problems.add(error.with_path(path));
             }
         }
         files.clear();
 
-        let mut directories = self.directories.lock()?;
+        let mut directories = self.directories.lock().into_thread_problem()?;
         for path in directories.values() {
-            let path = path.lock()?;
+            let path = path.lock().into_thread_problem()?;
             info!("deleting directory: {}", path.display());
             let path = path.as_path();
             if let Err(error) = remove_dir_all(path) {
-                errors.push(error.with_path(path));
+                problems.add(error.with_path(path));
             }
         }
         directories.clear();
 
-        if errors.is_empty() { Ok(()) } else { Err(UrlError::IoMany(errors)) }
+        if problems.is_empty() { Ok(()) } else { Err(problems.into_problem().via(LowLevelError)) }
     }
 
     /// Get a cache file.
     ///
     /// If it already exists returns the path and true. Otherwise generates a path and returns it and false.
-    pub fn file(&self, key: &str, prefix: &str) -> Result<(PathBufRef, bool), UrlError> {
+    pub fn file(&self, key: &str, prefix: &str) -> Result<(PathBufRef, bool), Problem> {
         let key = key.to_string();
 
-        let mut files = self.files.lock()?;
+        let mut files = self.files.lock().into_thread_problem()?;
         match files.get(&key) {
             Some(path) => {
-                info!("existing file: {}", path.clone().lock()?.display());
+                info!("existing file: {}", path.clone().lock().into_thread_problem()?.display());
                 Ok((path.clone(), true))
             }
 
@@ -106,13 +105,13 @@ impl UrlCache {
     ///
     /// If it already exists returns the path and true. Otherwise creates it ([create_dir_all]) in a
     /// generated path and returns it and false.
-    pub fn directory(&self, key: &str, prefix: &str) -> Result<(PathBufRef, bool), UrlError> {
+    pub fn directory(&self, key: &str, prefix: &str) -> Result<(PathBufRef, bool), Problem> {
         let key = key.to_string();
 
-        let mut directories = self.directories.lock()?;
+        let mut directories = self.directories.lock().into_thread_problem()?;
         match directories.get(&key) {
             Some(path) => {
-                info!("existing directory: {}", path.clone().lock()?.display());
+                info!("existing directory: {}", path.clone().lock().into_thread_problem()?.display());
                 Ok((path.clone(), true))
             }
 
@@ -126,8 +125,8 @@ impl UrlCache {
         }
     }
 
-    pub(crate) fn new_path(&self, prefix: &str) -> Result<PathBuf, UrlError> {
-        create_dir_all(&self.base_directory).with_path(&self.base_directory)?;
+    pub(crate) fn new_path(&self, prefix: &str) -> Result<PathBuf, Problem> {
+        create_dir_all(&self.base_directory).with_path(&self.base_directory).via(LowLevelError)?;
 
         // We'll avoid case distinction because Windows doesn't
         let distribution = Uniform::new_inclusive('a', 'z').expect("Uniform::new_inclusive");

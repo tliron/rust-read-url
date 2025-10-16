@@ -2,6 +2,7 @@ use super::{super::errors::*, zip_url::*};
 
 use {
     positioned_io::*,
+    problemo::*,
     rc_zip_tokio::*,
     self_cell::*,
     std::{pin::*, sync::*, task::*},
@@ -18,11 +19,11 @@ type RandomAccessFileRef = Arc<RandomAccessFile>;
 pub trait AsyncReadZipMove {
     /// A version of [ReadZip::read_zip] that takes ownership of self.
     #[allow(async_fn_in_trait)]
-    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, UrlError>;
+    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, Problem>;
 }
 
 impl AsyncReadZipMove for Arc<RandomAccessFile> {
-    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, UrlError> {
+    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, Problem> {
         AsyncMovableArchiveHandle::new_for(self).await
     }
 }
@@ -46,8 +47,8 @@ type DependentArchiveHandle<'own> = ArchiveHandle<'own, RandomAccessFileRef>;
 
 impl AsyncMovableArchiveHandle {
     /// Constructor.
-    pub async fn new_for(file: RandomAccessFileRef) -> Result<AsyncMovableArchiveHandle, UrlError> {
-        AsyncMovableArchiveHandle::try_new(file, async |file| file.read_zip().await.map_err(|error| error.into())).await
+    pub async fn new_for(file: RandomAccessFileRef) -> Result<AsyncMovableArchiveHandle, Problem> {
+        AsyncMovableArchiveHandle::try_new(file, async |file| file.read_zip().await.into_url_problem("zip")).await
     }
 }
 
@@ -70,9 +71,9 @@ type DependentEntryHandle<'own> = EntryHandle<'own, RandomAccessFileRef>;
 
 impl AsyncMovableArchiveHandle {
     /// A version of [ArchiveHandle::by_name] that returns a [AsyncMovableEntryHandle].
-    pub async fn by_name(self, url: &ZipUrl) -> Result<AsyncMovableEntryHandle, UrlError> {
+    pub async fn by_name(self, url: &ZipUrl) -> Result<AsyncMovableEntryHandle, Problem> {
         AsyncMovableEntryHandle::try_new(self, async |movable_archive_handle| {
-            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| UrlError::new_io_not_found(url))
+            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| unreachable_url(url, "zip"))
         })
         .await
     }
@@ -97,7 +98,7 @@ type DependentReader<'own> = Pin<Box<dyn io::AsyncRead + 'own>>;
 
 impl AsyncMovableEntryHandle {
     /// A version of [EntryHandle::reader] that returns an [AsyncMovableEntryHandleReader].
-    pub fn reader(self) -> Result<AsyncMovableEntryHandleReader, UrlError> {
+    pub fn reader(self) -> Result<AsyncMovableEntryHandleReader, Problem> {
         AsyncMovableEntryHandleReader::try_new(self, |movable_entry_handle| {
             Ok(Box::pin(movable_entry_handle.borrow_dependent().reader()))
         })

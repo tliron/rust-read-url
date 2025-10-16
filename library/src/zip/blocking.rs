@@ -1,6 +1,7 @@
 use super::{super::errors::*, zip_url::*};
 
 use {
+    problemo::*,
     rc_zip_sync::*,
     self_cell::*,
     std::{fs::*, io},
@@ -13,11 +14,11 @@ use {
 /// A version of [ReadZip] that takes ownership of self.
 pub trait ReadZipMove {
     /// A version of [ReadZip::read_zip] that takes ownership of self.
-    fn read_zip_move(self) -> Result<MovableArchiveHandle, UrlError>;
+    fn read_zip_move(self) -> Result<MovableArchiveHandle, Problem>;
 }
 
 impl ReadZipMove for File {
-    fn read_zip_move(self) -> Result<MovableArchiveHandle, UrlError> {
+    fn read_zip_move(self) -> Result<MovableArchiveHandle, Problem> {
         MovableArchiveHandle::new_for(self)
     }
 }
@@ -41,8 +42,8 @@ type DependentArchiveHandle<'own> = ArchiveHandle<'own, File>;
 
 impl MovableArchiveHandle {
     /// Constructor.
-    pub fn new_for(file: File) -> Result<MovableArchiveHandle, UrlError> {
-        MovableArchiveHandle::try_new(file, |file| Ok(file.read_zip()?))
+    pub fn new_for(file: File) -> Result<MovableArchiveHandle, Problem> {
+        MovableArchiveHandle::try_new(file, |file| file.read_zip().into_url_problem("zip"))
     }
 }
 
@@ -65,9 +66,9 @@ type DependentEntryHandle<'own> = EntryHandle<'own, File>;
 
 impl MovableArchiveHandle {
     /// A version of [ArchiveHandle::by_name] that returns a [MovableEntryHandle].
-    pub fn by_name(self, url: &ZipUrl) -> Result<MovableEntryHandle, UrlError> {
+    pub fn by_name(self, url: &ZipUrl) -> Result<MovableEntryHandle, Problem> {
         MovableEntryHandle::try_new(self, |movable_archive_handle| {
-            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| UrlError::new_io_not_found(url))
+            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| unreachable_url(url, "zip"))
         })
     }
 }
@@ -91,7 +92,7 @@ type DependentReader<'own> = Box<dyn io::Read + 'own>;
 
 impl MovableEntryHandle {
     /// A version of [EntryHandle::reader] that returns a [MovableEntryHandleReader].
-    pub fn reader(self) -> Result<MovableEntryHandleReader, UrlError> {
+    pub fn reader(self) -> Result<MovableEntryHandleReader, Problem> {
         MovableEntryHandleReader::try_new(self, |movable_entry_handle| {
             Ok(Box::new(movable_entry_handle.borrow_dependent().reader()))
         })

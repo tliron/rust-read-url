@@ -1,4 +1,4 @@
-use super::{super::errors::*, zip_url::*};
+use super::{super::error::*, zip_url::*};
 
 use {
     ouroboros::*,
@@ -17,7 +17,7 @@ pub struct ZipReader {
 
 impl ZipReader {
     /// Constructor.
-    pub fn new(url: &ZipUrl) -> Result<Self, UrlError> {
+    pub fn new(url: &ZipUrl) -> Result<Self, Problem> {
         let archive_path = match url.archive_url.local() {
             Some(path) => path,
 
@@ -35,13 +35,13 @@ impl ZipReader {
             internal: ZipReaderInternalTryBuilder {
                 file,
 
-                archive_builder: |file: &File| -> Result<ArchiveHandle<'_, File>, UrlError> { Ok(file.read_zip()?) },
+                archive_builder: |file: &File| -> Result<ArchiveHandle<'_, File>, Problem> { Ok(file.read_zip()?) },
 
-                entry_builder: |archive: &ArchiveHandle<'_, File>| -> Result<EntryHandle<'_, File>, UrlError> {
-                    archive.by_name(entry_path).ok_or_else(|| UrlError::new_io_not_found(url))
+                entry_builder: |archive: &ArchiveHandle<'_, File>| -> Result<EntryHandle<'_, File>, Problem> {
+                    archive.by_name(entry_path).ok_or_else(|| ProblemContext::new_io_not_found(url))
                 },
 
-                reader_builder: |entry: &EntryHandle<'_, File>| -> Result<Box<dyn io::Read + '_>, UrlError> {
+                reader_builder: |entry: &EntryHandle<'_, File>| -> Result<Box<dyn io::Read + '_>, Problem> {
                     Ok(Box::new(entry.reader()))
                 },
             }

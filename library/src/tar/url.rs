@@ -29,16 +29,31 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn conform(&mut self) -> Result<(), super::super::UrlError> {
-        self.conform_path()
+    fn conform(&mut self) -> Result<(), problemo::Problem> {
+        // (We assume the archive URL has already been conformed)
+
+        // Note that tar entries could have relative or absolute paths
+        // (though absolute paths are rare), so we cannot conform to absolute
+        self.path = self.path.normalize();
+
+        self.open()?;
+
+        Ok(())
     }
 
     #[cfg(feature = "async")]
-    fn conform_async(&self) -> Result<ConformFuture, super::super::UrlError> {
-        use super::super::errors::*;
+    fn conform_async(&self) -> Result<ConformFuture, problemo::Problem> {
+        use problemo::*;
 
-        async fn conform_async(mut url: TarUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
+        async fn conform_async(mut url: TarUrl) -> Result<UrlRef, Problem> {
+            // (We assume the archive URL has already been conformed)
+
+            // Note that tar entries could have relative or absolute paths
+            // (though absolute paths are rare), so we cannot conform to absolute
+            url.path = url.path.normalize();
+
+            let _ = url.open_async()?;
+
             Ok(url.into())
         }
 
@@ -46,11 +61,12 @@ impl URL for TarUrl {
     }
 
     #[cfg(feature = "blocking")]
-    fn open(&self) -> Result<ReadRef, super::super::UrlError> {
+    fn open(&self) -> Result<ReadRef, problemo::Problem> {
         use {
             super::{super::errors::*, compression::*},
             kutil::io::reader::*,
-            std::str,
+            problemo::{common::*, *},
+            std::{io, str},
             tar::*,
         };
 
@@ -59,28 +75,31 @@ impl URL for TarUrl {
         // Decompression
         match self.get_compression() {
             TarCompression::None => {}
+
             #[cfg(feature = "gzip")]
-            TarCompression::GZip => {
+            TarCompression::Gzip => {
                 use {flate2::read::*, tracing::info};
                 info!("gzip decompression (blocking)");
-                reader = Box::new(GzDecoder::new(reader));
+                reader = Box::new(GzDecoder::new(io::BufReader::new(reader)));
             }
-            #[cfg(feature = "zstd")]
+
+            #[cfg(feature = "zstandard")]
             TarCompression::Zstandard => {
                 use {tracing::info, zstd::stream::*};
                 info!("zstd decompression (blocking)");
-                reader = Box::new(Decoder::new(reader)?);
+                reader = Box::new(Decoder::new(io::BufReader::new(reader)).via(LowLevelError)?);
             }
-            #[cfg(not(all(feature = "gzip", feature = "zstd")))]
-            compression => return Err(UrlError::UnsupportedFormat(compression.to_string())),
+
+            #[cfg(not(all(feature = "gzip", feature = "zstandard")))]
+            compression => return Err(Problem::UnsupportedFormat(compression.to_string())),
         }
 
         let mut archive = Archive::new(reader);
 
         // Advance the reader to the beginning of the tar entry
         let mut size = None;
-        for entry in archive.entries()? {
-            let entry = entry?;
+        for entry in archive.entries().into_url_problem("tar")? {
+            let entry = entry.into_url_problem("tar")?;
             match str::from_utf8(&entry.path_bytes()) {
                 Ok(path) => {
                     if path == self.path {
@@ -111,15 +130,16 @@ impl URL for TarUrl {
                 Ok(Box::new(BoundedReader::new(reader, size)))
             }
 
-            None => Err(UrlError::new_io_not_found(self)),
+            None => Err(unreachable_url(self, "tar")),
         }
     }
 
     #[cfg(feature = "async")]
-    fn open_async(&self) -> Result<OpenFuture, super::super::UrlError> {
+    fn open_async(&self) -> Result<OpenFuture, problemo::Problem> {
         use {
             super::{super::errors::*, compression::*},
             futures::*,
+            problemo::*,
             std::str,
             tokio_tar::*,
         };
@@ -128,33 +148,36 @@ impl URL for TarUrl {
         // Let's hope it stays maintained! Otherwise, we could also use tokio-util Compat
         // with async-tar.
 
-        async fn open_async(url: TarUrl) -> Result<AsyncReadRef, UrlError> {
+        async fn open_async(url: TarUrl) -> Result<AsyncReadRef, Problem> {
             let mut reader = url.archive_url.open_async()?.await?;
 
             // Decompression
             match url.get_compression() {
                 TarCompression::None => {}
+
                 #[cfg(feature = "gzip")]
-                TarCompression::GZip => {
+                TarCompression::Gzip => {
                     use {async_compression::tokio::bufread::*, tokio::io::*, tracing::info};
                     info!("gzip decompression (asynchronous)");
                     reader = Box::pin(GzipDecoder::new(BufReader::new(reader)));
                 }
-                #[cfg(feature = "zstd")]
+
+                #[cfg(feature = "zstandard")]
                 TarCompression::Zstandard => {
                     use {async_compression::tokio::bufread::*, tokio::io::*, tracing::info};
                     info!("zstd decompression (asynchronous)");
                     reader = Box::pin(ZstdDecoder::new(BufReader::new(reader)));
                 }
-                #[cfg(not(all(feature = "gzip", feature = "zstd")))]
-                compression => return Err(UrlError::UnsupportedFormat(compression.to_string())),
+
+                #[cfg(not(all(feature = "gzip", feature = "zstandard")))]
+                compression => return Err(Problem::UnsupportedFormat(compression.to_string()).into()),
             }
 
             let mut archive = Archive::new(reader);
 
-            let mut entries = archive.entries()?;
+            let mut entries = archive.entries().into_url_problem("tar")?;
             while let Some(entry) = entries.next().await {
-                let entry = entry?;
+                let entry = entry.into_url_problem("tar")?;
                 match str::from_utf8(&entry.path_bytes()) {
                     Ok(path) => {
                         if path == url.path {
@@ -166,22 +189,9 @@ impl URL for TarUrl {
                 }
             }
 
-            return Err(UrlError::new_io_not_found(url));
+            return Err(unreachable_url(url, "tar"));
         }
 
         Ok(Box::pin(open_async(self.clone())))
-    }
-}
-
-#[cfg(any(feature = "blocking", feature = "async"))]
-impl TarUrl {
-    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
-        // (We assume the archive URL has already been conformed)
-
-        // Note that tar entries could have relative or absolute paths
-        // (though absolute paths are rare), so we cannot conform to absolute
-        self.path = self.path.normalize();
-
-        Ok(())
     }
 }

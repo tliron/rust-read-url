@@ -1,8 +1,8 @@
 mod utils;
 
-use {read_url::*, std::collections::*};
+use {problemo::*, read_url::*, std::collections::*};
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // Mock URLs are useful for testing, placeholders, etc.
 
     let context = UrlContext::new();
