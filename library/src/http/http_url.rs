@@ -38,7 +38,7 @@ impl HttpUrl {
 }
 
 impl fmt::Display for HttpUrl {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "{}", self.url)
     }
 }

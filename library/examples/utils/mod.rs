@@ -2,7 +2,8 @@
 
 use {
     anstream::println,
-    kutil::cli::depict::*,
+    depiction::*,
+    problemo::*,
     read_url::*,
     std::result::Result,
     tokio::{io::*, *},
@@ -38,7 +39,7 @@ pub fn about(url: &UrlRef) {
     }
 }
 
-pub fn dump(url: &UrlRef) -> Result<(), UrlError> {
+pub fn dump(url: &UrlRef) -> Result<(), Problem> {
     about(url);
 
     let theme = Theme::default();
@@ -51,7 +52,7 @@ pub fn dump(url: &UrlRef) -> Result<(), UrlError> {
     Ok(())
 }
 
-pub async fn dump_async(url: &UrlRef) -> Result<(), UrlError> {
+pub async fn dump_async(url: &UrlRef) -> Result<(), Problem> {
     about(url);
 
     let theme = Theme::default();

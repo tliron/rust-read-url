@@ -1,6 +1,10 @@
 use super::super::errors::*;
 
-use {kutil::std::*, std::str::*};
+use {
+    kutil::std::*,
+    problemo::{common::*, *},
+    std::str::*,
+};
 
 //
 // TarCompression
@@ -13,8 +17,8 @@ pub enum TarCompression {
     /// No compression.
     None,
 
-    /// GZip compression.
-    GZip,
+    /// Gzip compression.
+    Gzip,
 
     /// Zstandard compression.
     #[strings("zstd")]
@@ -22,13 +26,15 @@ pub enum TarCompression {
 }
 
 impl FromStr for TarCompression {
-    type Err = UrlError;
+    type Err = Problem;
 
     fn from_str(representation: &str) -> Result<Self, Self::Err> {
         match representation {
-            "gzip" => Ok(Self::GZip),
+            "gzip" => Ok(Self::Gzip),
             "zstd" => Ok(Self::Zstandard),
-            _ => Err(UrlError::UnsupportedFormat(representation.into())),
+            _ => Err(UnsupportedError::as_problem("tar compression format")
+                .with(FormatAttachment::new(representation))
+                .via(UrlError)),
         }
     }
 }

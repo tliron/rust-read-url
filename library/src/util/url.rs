@@ -18,9 +18,9 @@ pub fn url_query(url: &Url) -> Option<UrlQuery> {
 }
 
 /// URL query.
-pub fn url_query_from<'own, IteratorT>(pairs: IteratorT) -> Option<UrlQuery>
+pub fn url_query_from<'borrow, IteratorT>(pairs: IteratorT) -> Option<UrlQuery>
 where
-    IteratorT: Iterator<Item = (Cow<'own, str>, Cow<'own, str>)>,
+    IteratorT: Iterator<Item = (Cow<'borrow, str>, Cow<'borrow, str>)>,
 {
     let mut query = UrlQuery::default();
     for (k, v) in pairs {
@@ -49,4 +49,15 @@ pub fn url_fragment(url: &Url) -> Option<String> {
 /// URL fragment string.
 pub fn url_fragment_string(fragment: &Option<String>) -> String {
     fragment.as_ref().map_or(Default::default(), |fragment| String::from("#") + fragment)
+}
+
+/// URL without query and fragment.
+pub fn url_without_query_and_fragment(mut url: String) -> String {
+    if let Some((before, _after)) = url.split_once('#') {
+        url = before.to_string();
+    }
+    if let Some((before, _after)) = url.split_once('?') {
+        url = before.to_string();
+    }
+    url
 }

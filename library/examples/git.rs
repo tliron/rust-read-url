@@ -1,8 +1,8 @@
 mod utils;
 
-use read_url::*;
+use {problemo::*, read_url::*};
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // The URL fagment can be used to refer to specific versions of a git repository
 
     let context = UrlContext::new();

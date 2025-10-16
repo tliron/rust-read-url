@@ -1,4 +1,4 @@
-use super::super::errors::*;
+use super::super::error::*;
 
 use {
     ouroboros::*,
@@ -19,12 +19,12 @@ pub struct AsyncZipReader {
 
 impl AsyncZipReader {
     /// Constructor.
-    pub async fn new(file: Arc<RandomAccessFile>, path: &str, url_representation: &str) -> Result<Self, UrlError> {
+    pub async fn new(file: Arc<RandomAccessFile>, path: &str, url_representation: &str) -> Result<Self, Problem> {
         let path = path.to_string();
         let url_representation = url_representation.to_string();
 
         Ok(Self {
-            internal: AsyncZipReaderInternalAsyncTryBuilder::<_, _, _, UrlError> {
+            internal: AsyncZipReaderInternalAsyncTryBuilder::<_, _, _, Problem> {
                 file,
 
                 archive_builder: |file: &Arc<RandomAccessFile>| Box::pin(async move { Ok(file.read_zip().await?) }),
@@ -33,7 +33,7 @@ impl AsyncZipReader {
                     Box::pin(async move {
                         match archive.by_name(path) {
                             Some(entry) => Ok(entry),
-                            None => Err(UrlError::new_io_not_found(url_representation)),
+                            None => Err(ProblemContext::new_io_not_found(url_representation)),
                         }
                     })
                 },
@@ -52,11 +52,7 @@ impl AsyncZipReader {
 }
 
 impl io::AsyncRead for AsyncZipReader {
-    fn poll_read(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &mut io::ReadBuf<'_>,
-    ) -> Poll<std::io::Result<()>> {
+    fn poll_read(mut self: Pin<&mut Self>, cx: &mut Context, buf: &mut io::ReadBuf) -> Poll<std::io::Result<()>> {
         self.internal.with_reader_mut(|reader| {
             let reader = reader.as_mut();
             reader.poll_read(cx, buf)

@@ -1,6 +1,9 @@
 use super::super::{cache::*, internal::*, url::*};
 
-use std::{collections::*, path::*, sync::*};
+use {
+    kutil::std::collections::*,
+    std::{path::*, sync::*},
+};
 
 //
 // UrlContext
@@ -16,7 +19,7 @@ pub struct UrlContext {
     pub base_urls: Arc<[Arc<UrlRef>]>,
 
     /// URL overrides.
-    pub url_overrides: Arc<Mutex<HashMap<String, String>>>,
+    pub url_overrides: Arc<Mutex<FastHashMap<String, String>>>,
 
     /// Cache.
     pub cache: Arc<UrlCache>,
@@ -43,9 +46,9 @@ impl UrlContext {
     pub fn new_for(cache_base_directory: Option<PathBuf>) -> UrlContextRef {
         UrlContext {
             base_urls: [].into(),
-            url_overrides: Arc::new(HashMap::default().into()),
+            url_overrides: Arc::new(FastHashMap::default().into()),
             cache: UrlCache::new(cache_base_directory).into(),
-            internal_url_registry: Arc::new(HashMap::default().into()),
+            internal_url_registry: Arc::new(FastHashMap::default().into()),
 
             #[cfg(feature = "http")]
             http_client: Arc::new(LazyLock::new(|| Default::default())),
@@ -74,7 +77,7 @@ impl UrlContext {
         .into()
     }
 
-    /// Return a child context with a different cache.
+    /// Return a child context with a different cache base directory.
     ///
     /// The child context shares everything else with the parent.
     pub fn with_cache(self: &UrlContextRef, cache_base_directory: Option<PathBuf>) -> UrlContextRef {

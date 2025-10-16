@@ -1,8 +1,8 @@
 use super::metadata::*;
 
 use {
-    kutil::io::reader::*,
-    std::{collections::*, sync::*},
+    kutil::{io::reader::*, std::collections::*},
+    std::sync::*,
 };
 
 //
@@ -17,7 +17,7 @@ pub static GLOBAL_INTERNAL_URL_REGISTRY: LazyLock<InternalUrlRegistry> =
 pub type InternalUrlRegistry = Mutex<RegisteredInternalUrls>;
 
 /// [InternalUrl](super::internal_url::InternalUrl) map.
-pub type RegisteredInternalUrls = HashMap<String, RegisteredInternalUrl>;
+pub type RegisteredInternalUrls = FastHashMap<String, RegisteredInternalUrl>;
 
 /// Registered [InternalUrl](super::internal_url::InternalUrl).
 #[derive(Clone, Debug)]

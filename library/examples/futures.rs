@@ -1,8 +1,8 @@
-use {futures::*, read_url::*, tokio_util::compat::*};
+use {futures::*, problemo::*, read_url::*, tokio_util::compat::*};
 
 // If you need to interact with Futures, you can use tokio_util::Compat
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // You *must* have a Tokio runtime to use read-url
     // (The tokio::main macro creates one automatically)
     let tokio = tokio::runtime::Builder::new_current_thread().enable_all().build()?;
@@ -10,7 +10,7 @@ pub fn main() -> Result<(), UrlError> {
     tokio.block_on(main_async())
 }
 
-pub async fn main_async() -> Result<(), UrlError> {
+pub async fn main_async() -> Result<(), Problem> {
     let context = UrlContext::new();
 
     let url = context

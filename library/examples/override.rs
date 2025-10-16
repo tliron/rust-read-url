@@ -1,8 +1,8 @@
 mod utils;
 
-use read_url::*;
+use {problemo::*, read_url::*};
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // You can override URLs in the context
 
     let context = UrlContext::new();

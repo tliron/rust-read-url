@@ -3,6 +3,8 @@ use super::{
     context::*,
 };
 
+use problemo::{common::*, *};
+
 impl UrlContext {
     /// Parses the argument as an absolute URL.
     ///
@@ -13,9 +15,14 @@ impl UrlContext {
     ///
     /// If you are expecting either a URL or a file path, consider
     /// [absolute_url_or_file_path](UrlContext::absolute_url_or_file_path).
-    pub fn absolute_url(self: &UrlContextRef, url_representation: &str) -> Result<UrlRef, UrlError> {
+    pub fn absolute_url(self: &UrlContextRef, url_representation: &str) -> Result<UrlRef, Problem> {
         let url_representation = self.get_url_or_override(url_representation.into())?;
-        let url = url::Url::parse(&url_representation).map_err(|error| UrlError::MalformedUrl(error.to_string()))?;
+
+        let url = url::Url::parse(&url_representation)
+            .via(MalformedError::default())
+            .with(UrlAttachment::new(url_representation))
+            .via(UrlError)?;
+
         match url.scheme() {
             "internal" => {
                 let (query, fragment) = url_query_and_fragment(&url);
@@ -59,7 +66,7 @@ impl UrlContext {
                 Ok(self.git_url(repository_url, path.into())?)
             }
 
-            scheme => Err(UrlError::UnsupportedScheme(scheme.into())),
+            scheme => Err(UnsupportedError::as_problem("URL scheme").with(SchemeAttachment::new(scheme)).via(UrlError)),
         }
     }
 
@@ -85,7 +92,7 @@ impl UrlContext {
     pub fn absolute_url_or_file_path(
         self: &UrlContextRef,
         url_or_file_path_representation: &str,
-    ) -> Result<UrlRef, UrlError> {
+    ) -> Result<UrlRef, Problem> {
         match self.clone().absolute_url(url_or_file_path_representation) {
             Ok(url) => Ok(url),
 

@@ -2,6 +2,7 @@ use super::{super::errors::*, zip_url::*};
 
 use {
     positioned_io::*,
+    problemo::*,
     rc_zip_tokio::*,
     self_cell::*,
     std::{pin::*, sync::*, task::*},
@@ -18,11 +19,11 @@ type RandomAccessFileRef = Arc<RandomAccessFile>;
 pub trait AsyncReadZipMove {
     /// A version of [ReadZip::read_zip] that takes ownership of self.
     #[allow(async_fn_in_trait)]
-    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, UrlError>;
+    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, Problem>;
 }
 
 impl AsyncReadZipMove for Arc<RandomAccessFile> {
-    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, UrlError> {
+    async fn read_zip_move(self) -> Result<AsyncMovableArchiveHandle, Problem> {
         AsyncMovableArchiveHandle::new_for(self).await
     }
 }
@@ -42,12 +43,12 @@ self_cell!(
 );
 
 // self_cell needs a non-nested type name
-type DependentArchiveHandle<'own> = ArchiveHandle<'own, RandomAccessFileRef>;
+type DependentArchiveHandle<'file> = ArchiveHandle<'file, RandomAccessFileRef>;
 
 impl AsyncMovableArchiveHandle {
     /// Constructor.
-    pub async fn new_for(file: RandomAccessFileRef) -> Result<AsyncMovableArchiveHandle, UrlError> {
-        AsyncMovableArchiveHandle::try_new(file, async |file| file.read_zip().await.map_err(|error| error.into())).await
+    pub async fn new_for(file: RandomAccessFileRef) -> Result<AsyncMovableArchiveHandle, Problem> {
+        AsyncMovableArchiveHandle::try_new(file, async |file| file.read_zip().await.into_url_problem("zip")).await
     }
 }
 
@@ -66,13 +67,13 @@ self_cell!(
 );
 
 // self_cell needs a non-nested type name
-type DependentEntryHandle<'own> = EntryHandle<'own, RandomAccessFileRef>;
+type DependentEntryHandle<'file> = EntryHandle<'file, RandomAccessFileRef>;
 
 impl AsyncMovableArchiveHandle {
     /// A version of [ArchiveHandle::by_name] that returns a [AsyncMovableEntryHandle].
-    pub async fn by_name(self, url: &ZipUrl) -> Result<AsyncMovableEntryHandle, UrlError> {
+    pub async fn by_name(self, url: &ZipUrl) -> Result<AsyncMovableEntryHandle, Problem> {
         AsyncMovableEntryHandle::try_new(self, async |movable_archive_handle| {
-            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| UrlError::new_io_not_found(url))
+            movable_archive_handle.borrow_dependent().by_name(&url.path).ok_or_else(|| unreachable_url(url, "zip"))
         })
         .await
     }
@@ -93,11 +94,11 @@ self_cell!(
 );
 
 // self_cell needs a non-nested type name
-type DependentReader<'own> = Pin<Box<dyn io::AsyncRead + 'own>>;
+type DependentReader<'reader> = Pin<Box<dyn io::AsyncRead + 'reader>>;
 
 impl AsyncMovableEntryHandle {
     /// A version of [EntryHandle::reader] that returns an [AsyncMovableEntryHandleReader].
-    pub fn reader(self) -> Result<AsyncMovableEntryHandleReader, UrlError> {
+    pub fn reader(self) -> Result<AsyncMovableEntryHandleReader, Problem> {
         AsyncMovableEntryHandleReader::try_new(self, |movable_entry_handle| {
             Ok(Box::pin(movable_entry_handle.borrow_dependent().reader()))
         })
@@ -105,11 +106,7 @@ impl AsyncMovableEntryHandle {
 }
 
 impl io::AsyncRead for AsyncMovableEntryHandleReader {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        context: &mut Context<'_>,
-        buffer: &mut io::ReadBuf<'_>,
-    ) -> Poll<io::Result<()>> {
+    fn poll_read(self: Pin<&mut Self>, context: &mut Context, buffer: &mut io::ReadBuf) -> Poll<io::Result<()>> {
         self.get_mut().with_dependent_mut(|_movable_entry_handle, reader| reader.as_mut().poll_read(context, buffer))
     }
 }

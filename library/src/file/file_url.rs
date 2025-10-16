@@ -64,7 +64,7 @@ impl FileUrl {
 }
 
 impl fmt::Display for FileUrl {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let host = self.host.as_ref().map_or("", |host| &host);
         let query = url_query_string(&self.query);
         let fragment = url_fragment_string(&self.fragment);

@@ -22,13 +22,10 @@ function generate () {
 
     m "generating $COMPLETIONS/$NAME"
     "$NAME" completion bash > "$COMPLETIONS/$NAME"
+    . "$COMPLETIONS/$NAME"
 
     m "generating $MAN1/$NAME.*"
     "$NAME" manual "$MAN1"
 }
 
 generate read-url
-
-if [ "$1" == -r ]; then
-    reset
-fi

@@ -1,8 +1,8 @@
 mod utils;
 
-use {read_url::*, std::collections::*};
+use {problemo::*, read_url::*};
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // Mock URLs are useful for testing, placeholders, etc.
 
     let context = UrlContext::new();
@@ -12,7 +12,7 @@ pub fn main() -> Result<(), UrlError> {
         "happy:/go=lucky".into(),
         false,                  // not "slashable"
         Some("happy:/".into()), // base URL (when "slashable" is false)
-        Some(HashMap::from([("key1".into(), "value1".into()), ("key2".into(), "value2".into())])), // query
+        Some(UrlQuery::from_iter([("key1".into(), "value1".into()), ("key2".into(), "value2".into())])), // query
         Some("a-fragment".into()), // fragment
         Some("text".into()),    // format
         Some(b"hello world"),   // content

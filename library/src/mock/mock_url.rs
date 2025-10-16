@@ -89,7 +89,7 @@ impl MockUrl {
 }
 
 impl fmt::Display for MockUrl {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let query = url_query_string(&self.query);
         let fragment = url_fragment_string(&self.fragment);
         write!(formatter, "{}{}{}", self.url_representation, query, fragment)

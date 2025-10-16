@@ -1,8 +1,8 @@
 mod utils;
 
-use read_url::*;
+use {problemo::*, read_url::*};
 
-pub fn main() -> Result<(), UrlError> {
+pub fn main() -> Result<(), Problem> {
     // Internal URLs are useful for providing custom data to consumers of the read-url API
 
     UrlContext::register_global_internal_url(
