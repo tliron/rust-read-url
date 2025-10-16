@@ -12,7 +12,10 @@ pub enum MainError {
     IO(#[from] io::Error),
 
     #[error("URL: {0}")]
-    Url(#[from] UrlError),
+    URL(#[from] UrlError),
+
+    #[error("missing: {0}")]
+    Missing(String),
 }
 
 impl RunError for MainError {}

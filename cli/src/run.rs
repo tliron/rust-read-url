@@ -1,21 +1,22 @@
-use super::{cli::*, errors::*};
+use super::{commands::*, errors::*};
 
 use {clap::*, kutil::cli::log::*};
 
+/// Run.
 pub fn run() -> Result<(), MainError> {
-    let cli = CLI::parse();
+    let root = Root::parse();
 
-    if !cli.quiet {
-        cli.colorize.initialize();
-        initialize_tracing(cli.verbose + 2, cli.log_path.as_ref())?;
+    if !root.quiet {
+        root.colorize.initialize();
+        initialize_tracing(root.verbose + 2, root.log_path.as_ref())?;
     }
 
-    match &cli.subcommand {
-        None => cli.read()?,
+    match &root.subcommand {
+        None => root.read()?,
         Some(subcommand) => match subcommand {
-            SubCommand::Version(version) => version.run::<CLI>(),
-            SubCommand::Completion(completion) => completion.run::<CLI>(),
-            SubCommand::Manual(manual) => manual.run::<CLI>()?,
+            SubCommand::Version(version) => version.run::<Root>(),
+            SubCommand::Completion(completion) => completion.run::<Root>(),
+            SubCommand::Manual(manual) => manual.run::<Root>()?,
         },
     }
 
