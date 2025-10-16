@@ -30,7 +30,15 @@ impl URL for ZipUrl {
 
     #[cfg(feature = "blocking")]
     fn conform(&mut self) -> Result<(), super::super::UrlError> {
-        self.conform_path()
+        // (We assume the archive URL has already been conformed)
+
+        // Note that ZIP entries could have relative or absolute paths
+        // (though absolute paths are rare), so we cannot conform to absolute
+        self.path = self.path.normalize();
+
+        self.open()?;
+
+        Ok(())
     }
 
     #[cfg(feature = "async")]
@@ -38,7 +46,14 @@ impl URL for ZipUrl {
         use super::super::errors::*;
 
         async fn conform_async(mut url: ZipUrl) -> Result<UrlRef, UrlError> {
-            url.conform_path()?;
+            // (We assume the archive URL has already been conformed)
+
+            // Note that ZIP entries could have relative or absolute paths
+            // (though absolute paths are rare), so we cannot conform to absolute
+            url.path = url.path.normalize();
+
+            let _ = url.open_async()?;
+
             Ok(url.into())
         }
 
@@ -120,42 +135,3 @@ impl URL for ZipUrl {
         Ok(Box::pin(open_async(self.clone())))
     }
 }
-
-#[cfg(any(feature = "blocking", feature = "async"))]
-impl ZipUrl {
-    fn conform_path(&mut self) -> Result<(), super::super::UrlError> {
-        // (We assume the archive URL has already been conformed)
-
-        // Note that zip entries could have relative or absolute paths
-        // (though absolute paths are rare), so we cannot conform to absolute
-        self.path = self.path.normalize();
-
-        Ok(())
-    }
-}
-
-// #[cfg(all(feature = "blocking", not(feature = "zip-rc")))]
-// fn open(&self) -> Result<ReadRef, super::super::UrlError> {
-//     use {
-//         memmap2::*,
-//         piz::read::*,
-//         std::fs::*,
-//     };
-
-//     let path = match self.archive_url.local() {
-//         Some(path) => path,
-
-//         None => {
-//             let (path, _) = self.context.cache.file_from(&self.archive_url, "zip-")?;
-//             path
-//         }
-//     };
-
-//     let file = File::open(path)?;
-//     let mapping = unsafe { Mmap::map(&file)? };
-//     let archive = ZipArchive::new(&mapping)?;
-//     let tree = as_tree(archive.entries())?;
-//     let metadata = tree.lookup(self.path.display().into_owned())?;
-//     let reader = archive.read(metadata)?;
-//     Ok(Box::new(reader))
-// }
