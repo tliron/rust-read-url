@@ -114,17 +114,17 @@ Decompression is automatically detected depending on the path suffix. `.tar.gz`,
 
 Note that file paths (with `url_or_file_path()`) do not have fragments, so if you need this feature just use a `file:` URL instead.
 
-Tarballs are serial containers, naturally optimized for streaming, meaning that unwanted entries are skipped until our entry is found, and then subsequent entries are ignored. This means that when accessing tarballs over the network the tarball does not have to be downloaded in its entirety, unlike with zip (see below).
+Tarballs are serial containers, naturally optimized for streaming, meaning that unwanted entries are skipped until our entry is found, and then subsequent entries are ignored. This means that when accessing tarballs over the network the tarball does not have to be downloaded in its entirety, unlike with ZIP (see below).
 
 ### `zip:`
 
-Entries in zip files. Example:
+Entries in ZIP files. Example:
 
     zip:http://mysite.org/cloud.zip!path/to/main.yaml
 
-Note that zip files require random file access and thus *must* be fully accessible. Consequently for remote zips the entire archive will be downloaded in order to access a single entry. Read-url will optimize by downloading the archive only once per context. Other URLs referring to the archive will use the existing download.
+Note that ZIP files require random file access and thus *must* be fully accessible. Consequently for remote zips the entire archive will be downloaded in order to access a single entry. Read-url will optimize by downloading the archive only once per context. Other URLs referring to the archive will use the existing download.
 
-If you have a choice of compression technologies and want efficient support for remote access then you should prefer tarballs to zip files.
+If you have a choice of compression technologies and want efficient support for remote access then you should prefer tarballs to ZIP files.
 
 ### `git:`
 
@@ -144,7 +144,7 @@ Internal URL content can be stored either in a context (`register_internal_url()
 
 ### Mock URLs
 
-These are intended to be used for testing. They must be created explicitly via `mock_url()` and are not created by parsing an input URLs. The can thus use any scheme, indeed any notation, with any content.
+These are intended to be used for testing. They must be created explicitly via `mock_url()` and are not created by parsing an input. They can thus use any scheme, indeed any notation, with any content.
 
 License
 -------
