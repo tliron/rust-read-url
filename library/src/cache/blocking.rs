@@ -28,8 +28,8 @@ impl UrlCache {
                 let path = self.new_path(prefix)?;
 
                 info!("downloading to file (blocking): {}", path.display());
-                let mut reader = url.open()?;
-                let mut file = File::create_new(path.clone()).with_path(path.clone())?;
+                let mut reader = io::BufReader::new(url.open()?);
+                let mut file = io::BufWriter::new(File::create_new(path.clone()).with_path(path.clone())?);
                 io::copy(&mut reader, &mut file)?;
 
                 info!("new file: {}", path.display());

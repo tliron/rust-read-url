@@ -18,7 +18,7 @@ use {
 ///
 /// The URL scheme is "tar:", followed by full archive URL, a `!`, and then the entry path
 /// within the archive. The fragment of the archive URL is used to explicitly set the
-/// compression algorithm. If the compression is not explicity set, will attempt to determine
+/// compression algorithm. If the compression is not explicitly set, will attempt to determine
 /// it according to the format of the archive URL.
 #[derive(Clone, Debug)]
 pub struct TarUrl {
@@ -70,7 +70,7 @@ impl TarUrl {
 
             None => match self.archive_url.format() {
                 Some(archive_format) => match archive_format.as_str() {
-                    "tar.gz" => TarCompression::GZip,
+                    "tar.gz" => TarCompression::Gzip,
                     "tar.zstd" => TarCompression::Zstandard,
                     _ => TarCompression::None,
                 },

@@ -18,7 +18,7 @@ keywords = ["url"]
 
 [dependencies]
 anstream = "0.6.21"
-clap = { version = "4.5.49", features = ["derive", "string"] }
+clap = { version = "4.5.50", features = ["derive", "string"] }
 clap_complete_command = "0.6.1"
 kutil = { version = "=0.0.2", features = ["cli", "clap"] }
 read-url = { version = "=0.0.9" }
