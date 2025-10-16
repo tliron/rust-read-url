@@ -8,7 +8,7 @@ Go beyond `http://` with this streamlined URL library for Rust.
 
 read-url gets you an `io::Read` or a `tokio::io::AsyncRead` from a wide variety of URL types, including entries in archives and code repositories using a URL notation inspired by Java's [JarURLConnection](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/JarURLConnection.html).
 
-We strongly recommend starting with the [examples](https://github.com/tliron/rust-read-url/tree/main/crates/library/examples), specifically `start_here.rs`. They are designed to give you a tour of the API and its features.
+We strongly recommend starting with the [examples](https://github.com/tliron/rust-read-url/tree/main/library/examples), specifically `start_here.rs`. They are designed to give you a tour of the API and its features.
 
 ```rust
 use read_url::*;
